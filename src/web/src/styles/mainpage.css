@@ -1,0 +1,13 @@
+.mainpage-root {
+  padding: 1.5rem;
+}
+
+.mainpage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mainpage-summary {
+  margin-top: 1.25rem;
+}
