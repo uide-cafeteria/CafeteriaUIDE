@@ -1,22 +1,28 @@
 // data/models/associations.js
+
 import MenuDelDia from './menuDelDia.js';
 import Producto from './producto.js';
 import MenuDelDiaProducto from './menuDelDiaProducto.js';
 
-export function setupMenuAssociations() {
-    // Menú → muchos Productos (a través de la tabla intermedia)
+export default function setupAssociations() {
+    // Muchos a muchos: Menú del día ↔ Producto
     MenuDelDia.belongsToMany(Producto, {
         through: MenuDelDiaProducto,
+        as: 'productos',
         foreignKey: 'idMenu',
-        otherKey: 'idProducto',
-        as: 'productos'  // ← Alias que usarás en los includes
+        otherKey: 'idProducto'
     });
 
-    // Producto → muchos Menús
     Producto.belongsToMany(MenuDelDia, {
         through: MenuDelDiaProducto,
+        as: 'menus_del_dia',
         foreignKey: 'idProducto',
-        otherKey: 'idMenu',
-        as: 'menus'
+        otherKey: 'idMenu'
     });
+
+    // asociaciones explícitas en la tabla intermedia
+    MenuDelDiaProducto.belongsTo(MenuDelDia, { foreignKey: 'idMenu' });
+    MenuDelDiaProducto.belongsTo(Producto, { foreignKey: 'idProducto' });
+    MenuDelDia.hasMany(MenuDelDiaProducto, { foreignKey: 'idMenu' });
+    Producto.hasMany(MenuDelDiaProducto, { foreignKey: 'idProducto' });
 }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/menu_del_dia.dart';
 import '../../services/menu_services.dart';
 import '../../config/app_theme.dart';
-import '../layout/widgets/dish_card.dart'; // ← El que ya corregimos antes
+import '../layout/widgets/dish_card.dart';
 import '../layout/widgets/day_selector.dart';
 
 class HomePage extends StatefulWidget {
@@ -30,9 +30,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _selectedDay = _getCurrentDiaSemana();
     _loadUserData();
-    _loadMenu(); // Carga el menú activo del día actual
+    _loadMenu();
   }
 
+  // === LÓGICA MANTENIDA INTACTA ===
   DiaSemana _getCurrentDiaSemana() {
     final weekday = DateTime.now().weekday;
     return switch (weekday) {
@@ -81,22 +82,15 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedDay = day;
     });
-
-    // Solo recargamos el menú si el día seleccionado es hoy
     if (day == _getCurrentDiaSemana()) {
-      _loadMenu(); // ← Vuelve a cargar y mostrar el menú real
+      _loadMenu();
     } else {
-      // Para otros días: mensaje informativo
       setState(() {
         _currentMenu = null;
-        _menuError = null; // Limpiamos error anterior
+        _menuError = null;
         _isLoadingMenu = false;
       });
     }
-  }
-
-  void _showLoginDialog() {
-    Navigator.pushNamed(context, '/login');
   }
 
   void _logout() async {
@@ -106,12 +100,6 @@ class _HomePageState extends State<HomePage> {
       _userName = "Invitado";
       _codigoUnico = "";
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Sesión cerrada"),
-        backgroundColor: Colors.green,
-      ),
-    );
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
@@ -122,6 +110,109 @@ class _HomePageState extends State<HomePage> {
     return 'Buenas noches';
   }
 
+  // === WIDGETS DE UI MEJORADOS ===
+
+  Widget _buildPromoCards() {
+    final List<Map<String, dynamic>> promos = [
+      {
+        'title': 'Combo Almuerzo',
+        'subtitle': 'Sopa + Plato Fuerte + Jugo',
+        'price': '\$3.50',
+        'color': AppTheme.primaryColor,
+        'icon': Icons.lunch_dining,
+      },
+      {
+        'title': 'Promo Estudiante',
+        'subtitle': 'Postre gratis por tu cumple',
+        'price': 'GRATIS',
+        'color': Colors.orange[700],
+        'icon': Icons.cake,
+      },
+    ];
+
+    return SizedBox(
+      height: 150,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: promos.length,
+        itemBuilder: (context, index) {
+          final promo = promos[index];
+          return Container(
+            width: MediaQuery.of(context).size.width * 0.75,
+            margin: const EdgeInsets.only(right: 15, bottom: 10),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [promo['color'], promo['color'].withOpacity(0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: promo['color'].withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: -10,
+                  bottom: -10,
+                  child: Icon(promo['icon'], size: 80, color: Colors.white12),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      promo['title'],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      promo['subtitle'],
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        promo['price'],
+                        style: TextStyle(
+                          color: promo['color'],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isToday = _selectedDay == _getCurrentDiaSemana();
@@ -130,22 +221,18 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
-            // === HEADER (saludo + perfil) ===
-            SliverAppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              floating: true,
-              expandedHeight: 120,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
+            // === HEADER (UX REVISADO) ===
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             _getGreeting(),
@@ -156,128 +243,57 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _isLoadingUser
-                                ? 'Cargando...'
-                                : _isLoggedIn
-                                ? _userName
-                                : 'Cafetería Universitaria',
+                            _isLoadingUser ? 'Cargando...' : _userName,
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          if (_isLoggedIn && _codigoUnico.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    "#",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    _codigoUnico,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                         ],
                       ),
-                      PopupMenuButton<String>(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        offset: const Offset(0, 50),
-                        child: CircleAvatar(
-                          backgroundColor: AppTheme.primaryColor.withOpacity(
-                            0.15,
-                          ),
-                          radius: 22,
-                          child: Icon(
-                            _isLoggedIn ? Icons.person : Icons.person_outline,
-                            color: AppTheme.primaryColor,
-                            size: 28,
-                          ),
-                        ),
-                        onSelected: (value) {
-                          if (value == 'login') _showLoginDialog();
-                          if (value == 'logout') _logout();
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'profile',
-                            child: Row(
-                              children: [
-                                Icon(Icons.person, color: Colors.grey[700]),
-                                const SizedBox(width: 12),
-                                Text(_isLoggedIn ? _userName : "Invitado"),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuDivider(),
-                          _isLoggedIn
-                              ? PopupMenuItem(
-                                  value: 'logout',
-                                  child: Row(
-                                    children: const [
-                                      Icon(Icons.logout, color: Colors.red),
-                                      SizedBox(width: 12),
-                                      Text(
-                                        "Cerrar Sesión",
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : PopupMenuItem(
-                                  value: 'login',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.login,
-                                        color: AppTheme.primaryColor,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text("Iniciar Sesión"),
-                                    ],
-                                  ),
-                                ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                    _buildUserMenu(),
+                  ],
                 ),
               ),
             ),
 
+            // === SECCIÓN PROMOCIONES (NUEVO) ===
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
+                child: Text(
+                  "Ofertas de hoy",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(child: _buildPromoCards()),
+
             // === SELECTOR DE DÍA ===
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 32, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 25, 20, 15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isToday
-                          ? 'Menú de hoy'
-                          : 'Menú para ${_selectedDay.nombre}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isToday
+                              ? 'Menú de hoy'
+                              : 'Menú para ${_selectedDay.nombre}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 15),
                     DaySelector(
                       selectedDay: _selectedDay,
                       onDaySelected: _onDayChanged,
@@ -287,107 +303,115 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            // === ESTADO DEL MENÚ ===
+            // === CONTENIDO DEL MENÚ ===
             if (_isLoadingMenu)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
               )
-            else if (!isToday)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(40),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.schedule, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text(
-                          "El menú para ${_selectedDay.nombre}\nse publicará pronto",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            else if (_menuError != null)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(40),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.no_meals, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text(
-                          _menuError!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            else if (_currentMenu == null || _currentMenu!.productos.isEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(40),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.no_meals_outlined,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "No hay menú disponible hoy",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF606060),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
+            else if (!isToday ||
+                _menuError != null ||
+                _currentMenu == null ||
+                _currentMenu!.productos.isEmpty)
+              SliverToBoxAdapter(child: _buildEmptyState(isToday))
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                padding: const EdgeInsets.fromLTRB(20, 5, 20, 100),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final item = _currentMenu!.productos[index];
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      duration: Duration(milliseconds: 300 + (index * 100)),
-                      builder: (context, value, child) => Opacity(
-                        opacity: value,
-                        child: Transform.translate(
-                          offset: Offset(0, 20 * (1 - value)),
-                          child: child,
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: Duration(milliseconds: 300 + (index * 100)),
+                        builder: (context, value, child) => Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: child,
+                          ),
                         ),
+                        child: DishCard(item: item),
                       ),
-                      child: DishCard(item: item), // ← Tu DishCard corregido
                     );
                   }, childCount: _currentMenu!.productos.length),
                 ),
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserMenu() {
+    return PopupMenuButton<String>(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      offset: const Offset(0, 50),
+      child: CircleAvatar(
+        backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+        radius: 24,
+        child: Icon(Icons.person_rounded, color: AppTheme.primaryColor),
+      ),
+      onSelected: (value) {
+        if (value == 'login') Navigator.pushNamed(context, '/login');
+        if (value == 'logout') _logout();
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          enabled: false,
+          child: Text(
+            _userName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const PopupMenuDivider(),
+        _isLoggedIn
+            ? PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: const [
+                    Icon(Icons.logout, color: Colors.red, size: 20),
+                    SizedBox(width: 10),
+                    Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              )
+            : PopupMenuItem(
+                value: 'login',
+                child: Row(
+                  children: const [
+                    Icon(Icons.login, color: AppTheme.primaryColor, size: 20),
+                    SizedBox(width: 10),
+                    Text("Iniciar Sesión"),
+                  ],
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(bool isToday) {
+    return Container(
+      padding: const EdgeInsets.all(60),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isToday ? Icons.no_meals_outlined : Icons.event_note,
+            size: 80,
+            color: Colors.grey[300],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _menuError ??
+                (isToday
+                    ? "No hay platos disponibles por ahora"
+                    : "El menú para ${_selectedDay.nombre}\nse publicará pronto"),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[500], fontSize: 16),
+          ),
+        ],
       ),
     );
   }
