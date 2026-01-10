@@ -4,6 +4,7 @@ import { Container } from '@mui/material'
 import LoginPage from './LoginPage'
 import Cafeteria from './Cafeteria'
 import ScanQR from './ScanQRPage'
+import MenuProductos from './MenuProductos'
 import ScanConfirm from './ScanConfirmPage'
 import '../styles/app.css'
 
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/cafeteria" element={<Cafeteria onLogout={handleLogout} />} />
           <Route path="/" element={<Navigate to={isAuthenticated ? '/cafeteria' : '/login'} replace />} />
+          <Route path="/cafeteria/menu/:idMenu/productos" element={<MenuProductos />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/scan-qr" element={<ScanQR />} />
           <Route path="/scan-confirm" element={<ScanConfirm />} />

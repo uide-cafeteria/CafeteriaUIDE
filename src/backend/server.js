@@ -5,7 +5,7 @@ import { testConnection } from './data/config/db.js';
 import routes from './routes/index.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { setupMenuAssociations } from './data/models/associations.js';
+import setupAssociations from './data/models/associations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +30,7 @@ app.use('/api', routes);
 
 testConnection();
 
-setupMenuAssociations();
+setupAssociations();
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);

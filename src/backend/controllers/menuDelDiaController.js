@@ -165,13 +165,18 @@ const menuDelDiaController = {
                 }
             );
 
-            // Activar el seleccionado
-            menu.activo = true;
-            await menu.save();
+            // Activar o desactivar si se encuenta activo el seleccionado
+            if (menu.activo != true) {
+                menu.activo = true;
+                await menu.save();
+            } else {
+                menu.activo = false;
+                await menu.save();
+            }
 
             res.status(200).json({
                 status: true,
-                message: `Menú "${menu.nombre}" activado para ${menu.dia_semana}`,
+                message: `Menú "${menu.nombre}" estado cambiado para ${menu.dia_semana}`,
                 menu
             });
         } catch (error) {
@@ -192,9 +197,11 @@ const menuDelDiaController = {
 
             const menus = await MenuDelDia.findAll({
                 include: [{
-                    model: MenuDelDiaProducto,
+                    model: Producto,
                     as: 'productos',
-                    include: [{ model: Producto, as: 'producto' }]
+                    through: {
+                        attributes: ['precio_especial', 'es_promocion'] // opcional: trae campos extra
+                    }
                 }],
                 order: [['dia_semana', 'ASC'], ['nombre', 'ASC']]
             });
@@ -277,6 +284,68 @@ const menuDelDiaController = {
             res.status(500).json({
                 status: false,
                 message: 'Error al quitar producto',
+                error: error.message
+            });
+        }
+    },
+
+    //8. Lista todos los productos en un menú diario mediante su id
+    listarProductosPorMenu: async (req, res) => {
+        try {
+            const { idMenu } = req.params;
+            // Verificar que el menú existe
+            const menu = await MenuDelDia.findByPk(idMenu);
+            if (!menu) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Menú no encontrado'
+                });
+            }
+
+            // Obtener los productos asociados
+            const productos = await MenuDelDia.findOne({
+                where: { idMenu },
+                attributes: ['idMenu', 'nombre', 'dia_semana', 'activo'], // info básica del menú
+                include: [{
+                    model: Producto,
+                    as: 'productos',
+                    through: {
+                        attributes: ['precio_especial', 'es_promocion']
+                    },
+                    attributes: [
+                        'idProducto',
+                        'nombre',
+                        'descripcion',
+                        'precio',
+                        'categoria',
+                        'imagen',
+                        'activo'
+                    ],
+                    where: { activo: true }, // opcional: solo productos activos
+                    required: false
+                }]
+            });
+
+            // Si no hay productos, devolvemos array vacío pero con info del menú
+            const productosLista = productos?.productos || [];
+
+            res.status(200).json({
+                status: true,
+                message: 'Productos del menú obtenidos con éxito',
+                menu: {
+                    idMenu: menu.idMenu,
+                    nombre: menu.nombre,
+                    dia_semana: menu.dia_semana,
+                    activo: menu.activo
+                },
+                productos: productosLista
+            });
+
+        } catch (error) {
+            console.error('Error al listar productos del menú:', error);
+            res.status(500).json({
+                status: false,
+                message: 'Error al obtener los productos del menú',
                 error: error.message
             });
         }
