@@ -58,7 +58,7 @@ const historialAlmuerzoController = {
                 return res.status(403).json({ status: false, message: 'Acceso denegado' });
             }
 
-            const idUsuario = req.query.idUsuario;
+            const idUsuario = req.params.idUsuario;
 
             // Obtener el historial para administradores
             const historial = await HistorialAlmuerzo.findAll({
@@ -91,7 +91,57 @@ const historialAlmuerzoController = {
                 message: 'Error al mostrar el historial de almuerzos',
                 error
             });
+            console.log(error);
         };
+    },
+
+    // Mostrar historial global para el admin
+    mostrarHistorialGlobalAdmin: async (req, res) => {
+        try {
+            if (req.usuario.rol !== 'administrador') {
+                return res.status(403).json({
+                    status: false,
+                    message: 'Acceso denegado'
+                });
+            }
+
+            const historial = await HistorialAlmuerzo.findAll({
+                order: [['fecha_registro', 'DESC']], // lo más reciente primero
+                include: [
+                    {
+                        model: Usuario,
+                        as: 'cliente',
+                        attributes: ['idUsuario', 'nombre', 'codigoUnico'],
+                        required: true
+                    },
+                    {
+                        model: Usuario,
+                        as: 'registradoPor',
+                        attributes: ['idUsuario', 'nombre'],
+                        required: true
+                    }
+                ],
+                attributes: [
+                    'idHistorial',
+                    'fecha',
+                    'fecha_registro',
+                    'es_gratis'
+                ]
+            });
+
+            res.json({
+                status: true,
+                historial
+            });
+
+        } catch (error) {
+            console.error("Error al obtener historial global admin:", error);
+            res.status(500).json({
+                status: false,
+                message: 'Error al cargar el historial global',
+                error: error.message
+            });
+        }
     },
 
     // Registrar almuerzo cargando loyalty_token del usuario
