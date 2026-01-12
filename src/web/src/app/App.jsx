@@ -3,9 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Container } from '@mui/material'
 import LoginPage from './LoginPage'
 import Cafeteria from './Cafeteria'
-import ScanQR from './ScanQRPage'
-import MenuProductos from './MenuProductos'
+import HistorialAlmuerzos from './HistorialAlmuerzosPage'
 import ScanConfirm from './ScanConfirmPage'
+import HistorialUsuario from './HistorialUsuarioPage'
 import '../styles/app.css'
 
 export default function App() {
@@ -23,8 +23,9 @@ export default function App() {
           <Route path="/" element={<Navigate to={isAuthenticated ? '/cafeteria' : '/login'} replace />} />
           <Route path="/cafeteria/menu/:idMenu/productos" element={<MenuProductos />} />
           <Route path="*" element={<Navigate to="/" replace />} />
-          <Route path="/scan-qr" element={<ScanQR />} />
+          <Route path="/historial-almuerzos" element={<HistorialAlmuerzos />} />
           <Route path="/scan-confirm" element={<ScanConfirm />} />
+          <Route path="/historial-usuario/:idUsuario" element={<HistorialUsuario />} />
         </Routes>
       </Container>
     </BrowserRouter>
