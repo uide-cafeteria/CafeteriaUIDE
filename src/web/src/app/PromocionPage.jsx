@@ -470,6 +470,14 @@ export default function PromocionPage({ onLogout }) {
         }
     };
 
+    // Redirigir a otras páginas cuando cambie la pestaña
+    useEffect(() => {
+        if (activeTab === 'cafeteria') navigate('/cafeteria');
+        if (activeTab === 'menu') navigate('/menu-diario');
+        if (activeTab === 'historial') navigate('/historial-almuerzos');
+        if (activeTab === 'promociones') navigate('/promociones');
+    }, [activeTab, navigate]);
+
     return (
         <div className="cafeteria-container">
             {globalStyles}
@@ -489,10 +497,16 @@ export default function PromocionPage({ onLogout }) {
 
             {/* Navbar */}
             <div className="navbar-horizontal">
-                <button
-                    className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('promociones')}
-                >
+                <button className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`} onClick={() => setActiveTab('productos')}>
+                    Lista de Productos
+                </button>
+                <button className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>
+                    Menú Diario
+                </button>
+                <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+                    Historial de Almuerzos
+                </button>
+                <button className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`} onClick={() => setActiveTab('promociones')}>
                     Promociones
                 </button>
             </div>

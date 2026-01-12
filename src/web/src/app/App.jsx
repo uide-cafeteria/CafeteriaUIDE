@@ -4,7 +4,10 @@ import { Container } from '@mui/material'
 import LoginPage from './LoginPage'
 import Cafeteria from './Cafeteria'
 import HistorialAlmuerzos from './HistorialAlmuerzosPage'
+import MenuProductos from './MenuProductos'
+import MenuDiarioPage from './MenuDiarioPage'
 import ScanConfirm from './ScanConfirmPage'
+import PromocionPage from './PromocionPage'
 import HistorialUsuario from './HistorialUsuarioPage'
 import '../styles/app.css'
 
@@ -23,6 +26,8 @@ export default function App() {
           <Route path="/" element={<Navigate to={isAuthenticated ? '/cafeteria' : '/login'} replace />} />
           <Route path="/cafeteria/menu/:idMenu/productos" element={<MenuProductos />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/promociones" element={<PromocionPage />} />
+          <Route path="/menu-diario" element={<MenuDiarioPage />} />
           <Route path="/historial-almuerzos" element={<HistorialAlmuerzos />} />
           <Route path="/scan-confirm" element={<ScanConfirm />} />
           <Route path="/historial-usuario/:idUsuario" element={<HistorialUsuario />} />

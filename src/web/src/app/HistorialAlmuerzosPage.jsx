@@ -1,18 +1,18 @@
 // src/pages/HistorialAlmuerzosPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { History, Loader2, RefreshCw, Eye } from 'lucide-react';
+import { History, Loader2, RefreshCw, Eye, Tag } from 'lucide-react';
 
 export default function HistorialAlmuerzosPage({ onLogout }) {
-    const navigate = useNavigate();
-    const [registros, setRegistros] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [activeTab] = useState('historial');
+  const [activeTab, setActiveTab] = useState('historial');
+  const navigate = useNavigate();
+  const [registros, setRegistros] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-    // Estilos (incluyendo los del navbar)
-    const globalStyles = (
-        <style>{`
+  // Estilos (incluyendo los del navbar)
+  const globalStyles = (
+    <style>{`
       .cafeteria-container {
         padding: 20px;
         min-height: 100vh;
@@ -189,154 +189,166 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
         opacity: 0.7;
       }
     `}</style>
-    );
+  );
 
-    const cargarRegistros = async () => {
-        try {
-            setLoading(true);
-            setError('');
+  const cargarRegistros = async () => {
+    try {
+      setLoading(true);
+      setError('');
 
-            const token = localStorage.getItem('authToken');
-            if (!token) throw new Error('No hay sesión');
+      const token = localStorage.getItem('authToken');
+      if (!token) throw new Error('No hay sesión');
 
-            const res = await fetch('http://localhost:3001/api/historial/admin/global', {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+      const res = await fetch('http://localhost:3001/api/historial/admin/global', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-            const data = await res.json();
+      const data = await res.json();
 
-            if (res.ok && data.status) {
-                setRegistros(data.historial || []);
-            } else {
-                setError(data.message || 'No se pudo cargar los registros');
-            }
-        } catch (err) {
-            setError('Error al conectar con el servidor');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (res.ok && data.status) {
+        setRegistros(data.historial || []);
+      } else {
+        setError(data.message || 'No se pudo cargar los registros');
+      }
+    } catch (err) {
+      setError('Error al conectar con el servidor');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        cargarRegistros();
-    }, []);
+  useEffect(() => {
+    cargarRegistros();
+  }, []);
 
-    const verHistorialEstudiante = (idUsuario) => {
-        navigate(`/historial-usuario/${idUsuario}`);
-    };
+  const verHistorialEstudiante = (idUsuario) => {
+    navigate(`/historial-usuario/${idUsuario}`);
+  };
 
-    const handleLogout = () => {
-        localStorage.removeItem('authToken');
-        if (onLogout) onLogout();
-        navigate('/login');
-    };
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    if (onLogout) onLogout();
+    navigate('/login');
+  };
+  // Redirigir a otras páginas cuando cambie la pestaña
+  useEffect(() => {
+    if (activeTab === 'cafeteria') navigate('/cafeteria');
+    if (activeTab === 'menu') navigate('/menu-diario');
+    if (activeTab === 'historial') navigate('/historial-almuerzos');
+    if (activeTab === 'promociones') navigate('/promociones');
+  }, [activeTab, navigate]);
+  return (
+    <div className="cafeteria-container">
+      {globalStyles}
 
-    return (
-        <div className="cafeteria-container">
-            {globalStyles}
-
-            {/* Header */}
-            <div className="cafeteria-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h1 className="cafeteria-title">Cafetería Admin</h1>
-                        <p className="cafeteria-subtitle">Gestión y registros</p>
-                    </div>
-                    <button onClick={handleLogout} className="btn-logout">
-                        Cerrar sesión
-                    </button>
-                </div>
-            </div>
-
-            {/* Navbar horizontal - igual que en la página principal */}
-            <div className="navbar-horizontal">
-                <button
-                    className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
-                    onClick={() => navigate('/historial-almuerzos')}
-                >
-                    Historial de Almuerzos
-                </button>
-            </div>
-
-            {/* Acciones superiores */}
-            <div className="actions-bar">
-                <h2 className="actions-title">Registros Recientes</h2>
-
-                <button
-                    onClick={cargarRegistros}
-                    disabled={loading}
-                    className="btn-refresh"
-                >
-                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                    Actualizar
-                </button>
-            </div>
-
-            {/* Contenido principal */}
-            <div className="table-container">
-                {loading ? (
-                    <div className="p-20 text-center">
-                        <Loader2 className="animate-spin mx-auto mb-6 text-blue-600" size={60} />
-                        <p style={{ fontSize: '1.25rem', color: '#475569' }}>Cargando historial...</p>
-                    </div>
-                ) : error ? (
-                    <div className="p-12 text-center text-red-600 text-xl font-medium">{error}</div>
-                ) : registros.length === 0 ? (
-                    <div className="empty-state">
-                        <History size={100} className="empty-icon mx-auto mb-8" />
-                        <h3 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1e293b', marginBottom: '12px' }}>
-                            No hay registros aún
-                        </h3>
-                        <p style={{ fontSize: '1.125rem' }}>
-                            Cuando los usuarios comiencen a registrar almuerzos aparecerán aquí
-                        </p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="table-historial">
-                            <thead>
-                                <tr>
-                                    <th>Usuario</th>
-                                    <th>Fecha / Hora</th>
-                                    <th className="text-center">Tipo</th>
-                                    <th className="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {registros.map((registro) => (
-                                    <tr key={registro.idHistorial}>
-                                        <td className="font-medium">{registro.cliente?.nombre || '—'}</td>
-                                        <td style={{ color: '#475569' }}>
-                                            {new Date(registro.fecha_registro).toLocaleString('es-EC', {
-                                                dateStyle: 'medium',
-                                                timeStyle: 'short',
-                                            })}
-                                        </td>
-                                        <td className="text-center">
-                                            {registro.es_gratis ? (
-                                                <span className="status-badge badge-gratis">GRATIS</span>
-                                            ) : (
-                                                <span className="status-badge badge-pagado">PAGADO</span>
-                                            )}
-                                        </td>
-                                        <td className="text-center">
-                                            <button
-                                                onClick={() => verHistorialEstudiante(registro.cliente?.idUsuario)}
-                                                className="btn-ver"
-                                                title="Ver historial completo del usuario"
-                                            >
-                                                <Eye size={18} />
-                                                Ver historial
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+      {/* Header */}
+      <div className="cafeteria-header">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 className="cafeteria-title">Cafetería Admin</h1>
+            <p className="cafeteria-subtitle">Gestión y registros</p>
+          </div>
+          <button onClick={handleLogout} className="btn-logout">
+            Cerrar sesión
+          </button>
         </div>
-    );
+      </div>
+
+      {/* NAVBAR HORIZONTAL */}
+      <div className="navbar-horizontal">
+        <button className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`} onClick={() => setActiveTab('productos')}>
+          Lista de Productos
+        </button>
+        <button className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>
+          Menú Diario
+        </button>
+        <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+          Historial de Almuerzos
+        </button>
+        <button className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`} onClick={() => setActiveTab('promociones')}>
+          Promociones
+        </button>
+      </div>
+
+      {/* Acciones superiores */}
+      <div className="actions-bar">
+        <h2 className="actions-title">Registros Recientes</h2>
+
+        <button
+          onClick={cargarRegistros}
+          disabled={loading}
+          className="btn-refresh"
+        >
+          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          Actualizar
+        </button>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="table-container">
+        {loading ? (
+          <div className="p-20 text-center">
+            <Loader2 className="animate-spin mx-auto mb-6 text-blue-600" size={60} />
+            <p style={{ fontSize: '1.25rem', color: '#475569' }}>Cargando historial...</p>
+          </div>
+        ) : error ? (
+          <div className="p-12 text-center text-red-600 text-xl font-medium">{error}</div>
+        ) : registros.length === 0 ? (
+          <div className="empty-state">
+            <History size={100} className="empty-icon mx-auto mb-8" />
+            <h3 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1e293b', marginBottom: '12px' }}>
+              No hay registros aún
+            </h3>
+            <p style={{ fontSize: '1.125rem' }}>
+              Cuando los usuarios comiencen a registrar almuerzos aparecerán aquí
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-historial">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Fecha / Hora</th>
+                  <th className="text-center">Tipo</th>
+                  <th className="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registros.map((registro) => (
+                  <tr key={registro.idHistorial}>
+                    <td className="font-medium">{registro.cliente?.nombre || '—'}</td>
+                    <td style={{ color: '#475569' }}>
+                      {new Date(registro.fecha_registro).toLocaleString('es-EC', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </td>
+                    <td className="text-center">
+                      {registro.es_gratis ? (
+                        <span className="status-badge badge-gratis">GRATIS</span>
+                      ) : (
+                        <span className="status-badge badge-pagado">PAGADO</span>
+                      )}
+                    </td>
+                    <td className="text-center">
+                      <button
+                        onClick={() => verHistorialEstudiante(registro.cliente?.idUsuario)}
+                        className="btn-ver"
+                        title="Ver historial completo del usuario"
+                      >
+                        <Eye size={18} />
+                        Ver historial
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
