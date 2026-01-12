@@ -5,6 +5,7 @@ import LoginPage from './LoginPage'
 import Cafeteria from './Cafeteria'
 import ScanQR from './ScanQRPage'
 import ScanConfirm from './ScanConfirmPage'
+import PromocionPage from './PromocionPage'
 import '../styles/app.css'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/scan-qr" element={<ScanQR />} />
           <Route path="/scan-confirm" element={<ScanConfirm />} />
+          <Route path="/promociones" element={<PromocionPage onLogout={handleLogout} />} />
         </Routes>
       </Container>
     </BrowserRouter>
