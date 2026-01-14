@@ -25,7 +25,7 @@ const promocionController = {
                     fecha_fin: { [Op.gte]: hoy }
                 },
                 order: [['fecha_inicio', 'ASC']],
-                attributes: ['idPromocion', 'titulo', 'descripcion', 'imagen', 'fecha_inicio', 'fecha_fin']
+                attributes: ['idPromocion', 'titulo', 'descripcion', 'precio', 'imagen', 'fecha_inicio', 'fecha_fin', 'activo']
             });
 
             const baseUrl = `${req.protocol}://${req.get('host')}`;
@@ -94,7 +94,7 @@ const promocionController = {
                 return res.status(403).json({ status: false, message: 'Acceso denegado' });
             }
 
-            const { titulo, descripcion, fecha_inicio, fecha_fin, activo } = req.body;
+            const { titulo, descripcion, precio, fecha_inicio, fecha_fin, activo } = req.body;
 
             if (!titulo || !fecha_inicio || !fecha_fin) {
                 return res.status(400).json({
@@ -119,6 +119,7 @@ const promocionController = {
                 titulo: titulo.trim(),
                 descripcion: descripcion?.trim() || null,
                 imagen,
+                precio,
                 fecha_inicio,
                 fecha_fin,
                 activo: activo !== 'false',
@@ -160,7 +161,7 @@ const promocionController = {
             }
 
             const { idPromocion } = req.params;
-            const { titulo, descripcion, fecha_inicio, fecha_fin, activo } = req.body;
+            const { titulo, descripcion, precio, fecha_inicio, fecha_fin, activo } = req.body;
 
             const promocion = await Promocion.findByPk(idPromocion);
             if (!promocion) {
@@ -192,6 +193,7 @@ const promocionController = {
             // Actualizar campos
             promocion.titulo = titulo?.trim() || promocion.titulo;
             promocion.descripcion = descripcion?.trim() || null;
+            promocion.precio = precio || promocion.precio;
             promocion.fecha_inicio = fecha_inicio || promocion.fecha_inicio;
             promocion.fecha_fin = fecha_fin || promocion.fecha_fin;
             promocion.activo = activo !== undefined ? (activo !== 'false') : promocion.activo;

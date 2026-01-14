@@ -78,6 +78,16 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _onRefresh() async {
+    // Solo recargamos si estamos viendo el día de hoy
+    if (_selectedDay == _getCurrentDiaSemana()) {
+      await _loadMenu();
+    } else {
+      // Opcional: podrías mostrar un mensaje o simplemente no hacer nada
+      await Future.delayed(const Duration(milliseconds: 400));
+    }
+  }
+
   void _onDayChanged(DiaSemana day) {
     setState(() {
       _selectedDay = day;
@@ -100,6 +110,7 @@ class _HomePageState extends State<HomePage> {
       _userName = "Invitado";
       _codigoUnico = "";
     });
+    if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
@@ -220,125 +231,133 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // === HEADER (UX REVISADO) ===
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        child: RefreshIndicator(
+          // Color del indicador de refresco (puedes personalizarlo)
+          color: AppTheme.primaryColor,
+          backgroundColor: Colors.white,
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+              // === HEADER (UX REVISADO) ===
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getGreeting(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _isLoadingUser ? 'Cargando...' : _userName,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      _buildUserMenu(),
+                    ],
+                  ),
+                ),
+              ),
+
+              // === SECCIÓN PROMOCIONES ===
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  child: Text(
+                    "Ofertas de hoy",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(child: _buildPromoCards()),
+
+              // === SELECTOR DE DÍA ===
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            _getGreeting(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _isLoadingUser ? 'Cargando...' : _userName,
+                            isToday
+                                ? 'Menú de hoy'
+                                : 'Menú para ${_selectedDay.nombre}',
                             style: const TextStyle(
-                              fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
+                              fontSize: 18,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                    ),
-                    _buildUserMenu(),
-                  ],
-                ),
-              ),
-            ),
-
-            // === SECCIÓN PROMOCIONES (NUEVO) ===
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
-                child: Text(
-                  "Ofertas de hoy",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(child: _buildPromoCards()),
-
-            // === SELECTOR DE DÍA ===
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 25, 20, 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isToday
-                              ? 'Menú de hoy'
-                              : 'Menú para ${_selectedDay.nombre}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 15),
-                    DaySelector(
-                      selectedDay: _selectedDay,
-                      onDaySelected: _onDayChanged,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // === CONTENIDO DEL MENÚ ===
-            if (_isLoadingMenu)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (!isToday ||
-                _menuError != null ||
-                _currentMenu == null ||
-                _currentMenu!.productos.isEmpty)
-              SliverToBoxAdapter(child: _buildEmptyState(isToday))
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 5, 20, 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final item = _currentMenu!.productos[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.0, end: 1.0),
-                        duration: Duration(milliseconds: 300 + (index * 100)),
-                        builder: (context, value, child) => Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        ),
-                        child: DishCard(item: item),
+                      const SizedBox(height: 15),
+                      DaySelector(
+                        selectedDay: _selectedDay,
+                        onDaySelected: _onDayChanged,
                       ),
-                    );
-                  }, childCount: _currentMenu!.productos.length),
+                    ],
+                  ),
                 ),
               ),
-          ],
+
+              // === CONTENIDO DEL MENÚ ===
+              if (_isLoadingMenu)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (!isToday ||
+                  _menuError != null ||
+                  _currentMenu == null ||
+                  _currentMenu!.productos.isEmpty)
+                SliverToBoxAdapter(child: _buildEmptyState(isToday))
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 5, 20, 100),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final item = _currentMenu!.productos[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: Duration(milliseconds: 300 + (index * 100)),
+                          builder: (context, value, child) => Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(0, 20 * (1 - value)),
+                              child: child,
+                            ),
+                          ),
+                          child: DishCard(item: item),
+                        ),
+                      );
+                    }, childCount: _currentMenu!.productos.length),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

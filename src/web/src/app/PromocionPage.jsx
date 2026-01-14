@@ -15,6 +15,7 @@ export default function PromocionPage({ onLogout }) {
         titulo: '',
         descripcion: '',
         imagen: '',
+        precio: '',
         fecha_inicio: '',
         fecha_fin: '',
         activo: true,
@@ -351,6 +352,7 @@ export default function PromocionPage({ onLogout }) {
                 fecha_inicio: promo.fecha_inicio ? promo.fecha_inicio.split('T')[0] : '',
                 fecha_fin: promo.fecha_fin ? promo.fecha_fin.split('T')[0] : '',
                 activo: promo.activo,
+                precio: promo.precio,
                 imageFile: null,
                 imagePreview: promo.imagen || ''
             });
@@ -362,6 +364,7 @@ export default function PromocionPage({ onLogout }) {
                 fecha_inicio: '',
                 fecha_fin: '',
                 activo: true,
+                precio: '',
                 imageFile: null,
                 imagePreview: ''
             });
@@ -422,6 +425,7 @@ export default function PromocionPage({ onLogout }) {
         fd.append('titulo', formData.titulo.trim());
         fd.append('descripcion', formData.descripcion.trim() || '');
         fd.append('fecha_inicio', formData.fecha_inicio);
+        fd.append('precio', formData.precio);
         fd.append('fecha_fin', formData.fecha_fin);
         fd.append('activo', formData.activo);
 
@@ -542,6 +546,7 @@ export default function PromocionPage({ onLogout }) {
                                         <th>Imagen</th>
                                         <th>Título</th>
                                         <th>Descripción</th>
+                                        <th>Precio</th>
                                         <th>Inicio</th>
                                         <th>Fin</th>
                                         <th>Estado</th>
@@ -561,6 +566,7 @@ export default function PromocionPage({ onLogout }) {
                                             </td>
                                             <td className="font-semibold">{promo.titulo}</td>
                                             <td className="text-gray-600">{promo.descripcion || 'Sin descripción'}</td>
+                                            <td className="text-gray-600">{promo.precio}</td>
                                             <td>
                                                 <span className="date-badge">
                                                     {new Date(promo.fecha_inicio).toLocaleDateString('es-EC')}
@@ -633,6 +639,16 @@ export default function PromocionPage({ onLogout }) {
                                 value={formData.descripcion}
                                 onChange={handleInputChange}
                                 rows={3}
+                            />
+
+                            <label className="modal-label">Precio</label>
+                            <input
+                                className="modal-input"
+                                type="number"
+                                name="precio"
+                                value={formData.precio}
+                                onChange={handleInputChange}
+                                required
                             />
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
