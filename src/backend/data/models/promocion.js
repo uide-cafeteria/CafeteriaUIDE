@@ -26,6 +26,19 @@ const Promocion = sequelize.define('Promocion', {
         allowNull: true,
         defaultValue: null
     },
+    precio: {
+        type: DataTypes.DECIMAL(8, 2),
+        allowNull: false,
+        validate: {
+            isDecimal: {
+                msg: 'El precio debe ser un valor decimal válido'
+            },
+            min: {
+                args: [0],
+                msg: 'El precio no puede ser negativo'
+            }
+        }
+    },
     imagen: {
         type: DataTypes.STRING(255),
         allowNull: true,
