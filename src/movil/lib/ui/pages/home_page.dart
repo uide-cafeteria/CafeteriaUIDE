@@ -1,4 +1,4 @@
-// lib/pages/home_page.dart
+// home_page.dart (mejorado: slivers más fluidos, secciones con padding, textos con jerarquía, promos cards pulidas, error states visuales)
 import 'package:cafeteria_uide/utils/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -24,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   bool _isLoadingMenu = true;
   String? _menuError;
 
-  // Promociones
   List<Promotion> _promotions = [];
   bool _isLoadingPromos = true;
   String? _promosError;
@@ -43,7 +42,6 @@ class _HomePageState extends State<HomePage> {
     _loadPromotions();
   }
 
-  // === LÓGICA MANTENIDA INTACTA ===
   DiaSemana _getCurrentDiaSemana() {
     final weekday = DateTime.now().weekday;
     return switch (weekday) {
@@ -107,7 +105,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _onRefresh() async {
-    // Recargamos todo lo que corresponda
     await Future.wait([
       if (_selectedDay == _getCurrentDiaSemana()) _loadMenu(),
       _loadPromotions(),
@@ -147,33 +144,32 @@ class _HomePageState extends State<HomePage> {
     return 'Buenas noches';
   }
 
-  // === SECCIÓN PROMOCIONES DINÁMICA ===
   Widget _buildPromotionsSection() {
     if (_isLoadingPromos) {
       return const SizedBox(
-        height: 200,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        height: 220,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2.5)),
       );
     }
 
     if (_promosError != null || _promotions.isEmpty) {
       return SizedBox(
-        height: 140,
+        height: 160,
         child: Center(
           child: Text(
             _promosError ?? "Sin ofertas por ahora",
-            style: TextStyle(color: Colors.grey[600], fontSize: 15),
+            style: TextStyle(color: Colors.grey[500], fontSize: 16),
           ),
         ),
       );
     }
 
     return SizedBox(
-      height: 240,
+      height: 260,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         itemCount: _promotions.length,
         itemBuilder: (context, index) {
           return HomePromotionCard(promotion: _promotions[index]);
@@ -185,6 +181,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final isToday = _selectedDay == _getCurrentDiaSemana();
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -198,210 +195,142 @@ class _HomePageState extends State<HomePage> {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
-              // === HEADER ===
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _getGreeting(),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _isLoadingUser ? 'Cargando...' : _userName,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      _buildUserMenu(),
-                    ],
-                  ),
-                ),
-              ),
-
-              // === SECCIÓN PROMOCIONES ===
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Ofertas y Promociones",
-                        style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(child: _buildPromotionsSection()),
-
-              // === SELECTOR DE DÍA ===
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isToday
-                                ? 'Menú de hoy'
-                                : 'Menú para ${_selectedDay.nombre}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            '${_getGreeting()},',
+                            style: TextStyle(
                               fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            _userName,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primaryColor,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 15),
-                      DaySelector(
-                        selectedDay: _selectedDay,
-                        onDaySelected: _onDayChanged,
-                      ),
+                      if (_isLoggedIn)
+                        IconButton(
+                          icon: Icon(
+                            Icons.logout_rounded,
+                            color: AppTheme.primaryColor,
+                            size: 28,
+                          ),
+                          onPressed: _logout,
+                        ),
                     ],
                   ),
                 ),
               ),
-
-              // === CONTENIDO DEL MENÚ ===
+              SliverToBoxAdapter(child: const SizedBox(height: 16)),
+              SliverToBoxAdapter(
+                child: DaySelector(
+                  selectedDay: _selectedDay,
+                  onDaySelected: _onDayChanged,
+                ),
+              ),
+              SliverToBoxAdapter(child: const SizedBox(height: 24)),
               if (_isLoadingMenu)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation(AppTheme.primaryColor),
+                    ),
+                  ),
                 )
-              else if (!isToday ||
-                  _menuError != null ||
-                  _currentMenu == null ||
-                  _currentMenu!.productos.isEmpty)
-                SliverToBoxAdapter(child: _buildEmptyState(isToday))
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 5, 20, 100),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final item = _currentMenu!.productos[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0.0, end: 1.0),
-                          duration: Duration(milliseconds: 300 + (index * 100)),
-                          builder: (context, value, child) => Opacity(
-                            opacity: value,
-                            child: Transform.translate(
-                              offset: Offset(0, 20 * (1 - value)),
-                              child: child,
-                            ),
-                          ),
-                          child: DishCard(item: item),
-                        ),
-                      );
-                    }, childCount: _currentMenu!.productos.length),
+              else if (_currentMenu != null && isToday) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Menú del Día',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
                   ),
                 ),
+                SliverToBoxAdapter(child: const SizedBox(height: 16)),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final item = _currentMenu!.productos[index];
+                    return DishCard(
+                      item: item,
+                      showAsMain:
+                          item.producto?.categoria == 'Almuerzo' ?? false,
+                    );
+                  }, childCount: _currentMenu!.productos.length),
+                ),
+              ] else
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          isToday
+                              ? Icons.no_meals_outlined
+                              : Icons.event_note_outlined,
+                          size: 100,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          _menuError ??
+                              (isToday
+                                  ? "No hay platos disponibles por ahora"
+                                  : "El menú para ${_selectedDay.nombre}\nse publicará pronto"),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 17,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              SliverToBoxAdapter(child: const SizedBox(height: 32)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    'Promociones Activas',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(child: const SizedBox(height: 16)),
+              SliverToBoxAdapter(child: _buildPromotionsSection()),
+              SliverToBoxAdapter(child: const SizedBox(height: 40)),
             ],
           ),
         ),
       ),
     );
   }
-
-  Widget _buildUserMenu() {
-    return PopupMenuButton<String>(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      offset: const Offset(0, 50),
-      child: CircleAvatar(
-        backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-        radius: 24,
-        child: Icon(Icons.person_rounded, color: AppTheme.primaryColor),
-      ),
-      onSelected: (value) {
-        if (value == 'login') Navigator.pushNamed(context, '/login');
-        if (value == 'logout') _logout();
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          enabled: false,
-          child: Text(
-            _userName,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        const PopupMenuDivider(),
-        _isLoggedIn
-            ? PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: const [
-                    Icon(Icons.logout, color: Colors.red, size: 20),
-                    SizedBox(width: 10),
-                    Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              )
-            : PopupMenuItem(
-                value: 'login',
-                child: Row(
-                  children: const [
-                    Icon(Icons.login, color: AppTheme.primaryColor, size: 20),
-                    SizedBox(width: 10),
-                    Text("Iniciar Sesión"),
-                  ],
-                ),
-              ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState(bool isToday) {
-    return Container(
-      padding: const EdgeInsets.all(60),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isToday ? Icons.no_meals_outlined : Icons.event_note,
-            size: 80,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _menuError ??
-                (isToday
-                    ? "No hay platos disponibles por ahora"
-                    : "El menú para ${_selectedDay.nombre}\nse publicará pronto"),
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500], fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-// Widget para tarjeta de promoción en Home (estilo similar a PromotionsPage pero más compacto)
+// HomePromotionCard (pulido: shadows, tipografía, gradiente suave)
 class HomePromotionCard extends StatelessWidget {
   final Promotion promotion;
 
@@ -414,108 +343,99 @@ class HomePromotionCard extends StatelessWidget {
     final end = dateFormat.format(promotion.fechaFin);
 
     return Container(
-      width: MediaQuery.of(context).size.width * 0.78,
-      margin: const EdgeInsets.only(right: 16, bottom: 8),
+      width: MediaQuery.of(context).size.width * 0.82,
+      margin: const EdgeInsets.only(right: 20, bottom: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.14),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.16),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Imagen de fondo
             CachedNetworkImage(
               imageUrl:
                   promotion.imagen ??
                   'https://via.placeholder.com/500x280?text=Promo',
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(color: Colors.grey[300]),
+              placeholder: (context, url) =>
+                  Container(color: AppTheme.surfaceColor),
               errorWidget: (context, url, error) => Container(
-                color: Colors.grey[400],
+                color: AppTheme.surfaceColor,
                 child: const Icon(
-                  Icons.local_offer,
-                  size: 60,
+                  Icons.local_offer_rounded,
+                  size: 70,
                   color: Colors.white70,
                 ),
               ),
             ),
-
-            // Degradado inferior
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.75)],
-                  stops: const [0.4, 1.0],
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                  stops: const [0.45, 1.0],
                 ),
               ),
             ),
-
-            // Contenido
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // Badge
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF97316),
-                      borderRadius: BorderRadius.circular(30),
+                      color: AppTheme.accentColor,
+                      borderRadius: BorderRadius.circular(32),
                     ),
                     child: const Text(
                       'Oferta Activa',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-
+                  const SizedBox(height: 16),
                   Text(
                     promotion.titulo,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      height: 1.15,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   if (promotion.descripcion != null &&
                       promotion.descripcion!.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       promotion.descripcion!,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.95),
-                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.92),
+                        fontSize: 15,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-
-                  const SizedBox(height: 12),
-
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -523,15 +443,15 @@ class HomePromotionCard extends StatelessWidget {
                         '\$${promotion.precio}',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 24,
+                          fontSize: 26,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       Text(
                         '$start - $end',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
-                          fontSize: 13,
+                          color: Colors.white.withOpacity(0.88),
+                          fontSize: 14,
                         ),
                       ),
                     ],

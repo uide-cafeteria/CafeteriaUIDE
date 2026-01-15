@@ -4,6 +4,8 @@ import '../../../models/menu_del_dia.dart';
 import '../../../config/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+// ... imports iguales (incluye cached_network_image y app_theme)
+
 class DishCard extends StatelessWidget {
   final MenuDelDiaProducto item;
   final bool showAsMain;
@@ -13,53 +15,54 @@ class DishCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final producto = item.producto;
-    if (producto == null) {
-      return const SizedBox(); // En caso raro de que no venga el producto
-    }
+    if (producto == null) return const SizedBox.shrink();
 
-    final bool hasSpecialPrice = item.precioEspecial != null;
-    final bool isPromo = item.esPromocion;
+    final hasSpecialPrice = item.precioEspecial != null;
+    final isPromo = item.esPromocion;
+    final theme = Theme.of(context);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Imagen del plato (desde URL del backend)
           ClipRRect(
             borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(16),
+              left: Radius.circular(22),
             ),
             child: Stack(
               children: [
                 SizedBox(
-                  width: 110,
-                  height: 110,
+                  width: 120,
+                  height: 120,
                   child: producto.imagen != null && producto.imagen!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: producto.imagen!,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
+                          placeholder: (_, __) => Container(
                             color: AppTheme.surfaceColor,
                             child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                              ),
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
+                          errorWidget: (_, __, ___) => Container(
                             color: AppTheme.surfaceColor,
                             child: const Icon(
-                              Icons.restaurant,
-                              size: 40,
+                              Icons.restaurant_rounded,
+                              size: 50,
                               color: AppTheme.primaryColor,
                             ),
                           ),
@@ -67,58 +70,56 @@ class DishCard extends StatelessWidget {
                       : Container(
                           color: AppTheme.surfaceColor,
                           child: const Icon(
-                            Icons.restaurant,
-                            size: 40,
+                            Icons.restaurant_rounded,
+                            size: 50,
                             color: AppTheme.primaryColor,
                           ),
                         ),
                 ),
 
-                // Badge Principal
                 if (showAsMain || producto.categoria == 'Almuerzo')
                   Positioned(
-                    top: 8,
-                    left: 8,
+                    top: 10,
+                    left: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                        borderRadius: BorderRadius.circular(6),
+                        color: AppTheme.primaryColor.withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
                         'Principal',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ),
 
-                // Badge Promoción
                 if (isPromo)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 10,
+                    right: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(6),
+                        color: AppTheme.accentColor.withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
                         'Oferta',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -127,68 +128,73 @@ class DishCard extends StatelessWidget {
             ),
           ),
 
-          // Información
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     producto.nombre,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
                   if (producto.descripcion != null &&
-                      producto.descripcion!.isNotEmpty)
+                      producto.descripcion!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
                     Text(
                       producto.descripcion!,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: Colors.grey[700],
+                        height: 1.4,
+                      ),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
-
-                  const SizedBox(height: 10),
-
+                  ],
+                  const Spacer(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       if (hasSpecialPrice)
                         Text(
                           '\$${producto.precio.toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: Colors.grey[500],
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
-
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                          horizontal: 14,
+                          vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: hasSpecialPrice || isPromo
-                              ? Colors.orange[50]
+                          color: (hasSpecialPrice || isPromo)
+                              ? AppTheme.accentColor.withOpacity(0.12)
                               : AppTheme.surfaceColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: hasSpecialPrice || isPromo
-                              ? Border.all(color: Colors.orange)
+                          borderRadius: BorderRadius.circular(12),
+                          border: (hasSpecialPrice || isPromo)
+                              ? Border.all(
+                                  color: AppTheme.accentColor,
+                                  width: 1.5,
+                                )
                               : null,
                         ),
                         child: Text(
                           '\$${item.precioFinal.toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: hasSpecialPrice || isPromo
-                                ? Colors.orange[700]
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: (hasSpecialPrice || isPromo)
+                                ? AppTheme.accentColor
                                 : AppTheme.primaryColor,
                           ),
                         ),
