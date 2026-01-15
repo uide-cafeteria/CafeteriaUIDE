@@ -8,21 +8,162 @@ export default function MenuProductos() {
 
     const [menu, setMenu] = useState(null);
     const [allProducts, setAllProducts] = useState([]);
-    const [menuProducts, setMenuProducts] = useState([]); // productos ya en el menú
+    const [menuProducts, setMenuProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [adding, setAdding] = useState(null);
     const [removing, setRemoving] = useState(null);
 
-    // Reutilizamos los estilos inline que ya tienes en Cafeteria
-    const fixedImageStyle = (
+    // ────────────────────────────────────────────────
+    // Estilos globales copiados y adaptados de MenuDiarioPage
+    // ────────────────────────────────────────────────
+    const globalStyles = (
         <style>{`
-      .product-image-fixed {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
+      .cafeteria-container { 
+        padding: 20px; 
+        min-height: 100vh; 
+        background: #f8fafc; 
+      }
+      .cafeteria-header {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        padding: 32px 40px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        color: white;
+      }
+      .cafeteria-title { 
+        font-size: 36px; 
+        font-weight: 800; 
+        margin: 0; 
+      }
+      .cafeteria-subtitle { 
+        font-size: 18px; 
+        opacity: 0.9; 
+        margin-top: 8px; 
+      }
+      .btn-logout {
+        background: #dc2626 !important;
+        color: white !important;
+        padding: 12px 24px;
+        border-radius: 14px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.2s ease;
+      }
+      .btn-logout:hover { 
+        background: #b91c1c !important; 
+        transform: scale(1.05); 
+      }
+      .actions-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 25px;
+        margin: 18px 0;
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      }
+      .actions-title { 
+        font-size: 22px; 
+        font-weight: 700; 
+        color: #0f172a; 
+        margin: 0; 
+      }
+      .btn-back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #e2e8f0;
+        color: #475569;
+        border: none;
         border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+      .btn-back:hover { 
+        background: #cbd5e1; 
+        transform: translateY(-2px); 
+      }
+      .btn-add {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+      .btn-add:hover { 
+        background: #2563eb; 
+        transform: translateY(-2px); 
+      }
+      .btn-remove {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .btn-remove:hover:not(:disabled) { 
+        background: #dc2626; 
+        transform: scale(1.05); 
+      }
+      .table-bordered {
+        border-collapse: collapse;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .table-bordered th {
+        background: #f1f5f9;
+        padding: 14px;
+        border-bottom: 2px solid #e2e8f0;
+        font-weight: 600;
+        color: #334155;
+        text-align: left;
+      }
+      .table-bordered td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+      }
+      tr:hover { background: #f9fafb; }
+      .product-image-fixed {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
         box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      }
+      .badge {
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+      .badge-yes { background: #dcfce7; color: #166534; }
+      .badge-no  { background: #f3f4f6; color: #374151; }
+      .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 60px 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
       }
     `}</style>
     );
@@ -36,29 +177,22 @@ export default function MenuProductos() {
             }
 
             try {
-                // 1. Obtener información del menú
+                // Menú + productos ya asociados
                 const menuRes = await fetch(`http://localhost:3001/api/menu/${idMenu}/productos`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!menuRes.ok) throw new Error('No se pudo cargar el menú');
                 const menuData = await menuRes.json();
                 setMenu(menuData.menu);
+                setMenuProducts(menuData.productos || []);
 
-                // 2. Obtener TODOS los productos disponibles
+                // Todos los productos disponibles
                 const productsRes = await fetch('http://localhost:3001/api/producto/mostrar', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!productsRes.ok) throw new Error('No se pudieron cargar productos');
                 const productsData = await productsRes.json();
                 setAllProducts(productsData.productos || []);
-
-                // 3. Obtener productos que YA están en este menú
-                const menuProductsRes = await fetch(`http://localhost:3001/api/menu/${idMenu}/productos`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (!menuProductsRes.ok) throw new Error('No se pudieron cargar productos del menú');
-                const menuProductsData = await menuProductsRes.json();
-                setMenuProducts(menuProductsData.productos || []);
 
             } catch (err) {
                 setError(err.message || 'Error al cargar datos');
@@ -84,11 +218,15 @@ export default function MenuProductos() {
                 body: JSON.stringify({ idProducto })
             });
 
-            if (!res.ok) throw new Error('No se pudo agregar el producto');
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'No se pudo agregar');
+            }
 
-            // Actualizar lista local
             const productoAgregado = allProducts.find(p => p.idProducto === idProducto);
-            setMenuProducts(prev => [...prev, productoAgregado]);
+            if (productoAgregado) {
+                setMenuProducts(prev => [...prev, productoAgregado]);
+            }
         } catch (err) {
             alert(err.message || 'Error al agregar producto');
         } finally {
@@ -108,7 +246,6 @@ export default function MenuProductos() {
 
             if (!res.ok) throw new Error('No se pudo quitar el producto');
 
-            // Actualizar lista local
             setMenuProducts(prev => prev.filter(p => p.idProducto !== idProducto));
         } catch (err) {
             alert(err.message || 'Error al quitar producto');
@@ -155,10 +292,9 @@ export default function MenuProductos() {
 
     return (
         <div className="cafeteria-container">
+            {globalStyles}
 
-            {fixedImageStyle}
-
-            {/* Header igual que en Cafeteria */}
+            {/* Header idéntico */}
             <div className="cafeteria-header">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
@@ -173,35 +309,32 @@ export default function MenuProductos() {
                 </div>
             </div>
 
-            {/* Botón volver + título */}
-            <div className="actions-bar" style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <button
-                        onClick={() => navigate('/cafeteria')}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-                    >
-                        <ArrowLeft size={20} /> Volver a Menús
-                    </button>
-                    <h2 className="actions-title">
-                        Productos del menú: <span style={{ color: '#3b82f6' }}>{menu.nombre}</span>
-                    </h2>
-                </div>
+            {/* Barra de acciones */}
+            <div className="actions-bar" style={{ marginBottom: '32px' }}>
+                <button
+                    onClick={() => navigate('/cafeteria')}
+                    className="btn-back"
+                >
+                    <ArrowLeft size={20} /> Volver a Menús
+                </button>
+
+                <h2 className="actions-title">
+                    Productos del menú: <span style={{ color: '#3b82f6' }}>{menu.nombre}</span>
+                </h2>
             </div>
 
-            {/* Sección: Productos actuales en el menú */}
-            <div className="mb-12">
-                <h3 className="text-2xl font-bold mb-6">Productos actuales ({menuProducts.length})</h3>
+            {/* Productos actuales */}
+            <div className="mb-16">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800">
+                    Productos actuales ({menuProducts.length})
+                </h3>
 
                 {menuProducts.length === 0 ? (
-                    <div style={{
-                        background: "white",
-                        borderRadius: "20px",
-                        padding: "60px 30px",
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                        textAlign: "center"
-                    }}>
+                    <div className="empty-state">
                         <p className="text-xl text-gray-600">Este menú aún no tiene productos agregados</p>
-                        <p className="text-lg text-gray-500 mt-4">¡Comienza agregando desde la lista de abajo!</p>
+                        <p className="text-lg text-gray-500 mt-4">
+                            ¡Comienza agregando desde la lista de abajo!
+                        </p>
                     </div>
                 ) : (
                     <div className="table-container-expanded">
@@ -224,11 +357,13 @@ export default function MenuProductos() {
                                                 src={prod.imagen || '/placeholder.jpg'}
                                                 alt={prod.nombre}
                                                 className="product-image-fixed"
-                                                onError={e => e.target.src = '/placeholder.jpg'}
+                                                onError={e => { e.target.src = '/placeholder.jpg'; }}
                                             />
                                         </td>
                                         <td className="font-semibold">{prod.nombre}</td>
-                                        <td className="font-bold text-lg">${Number(prod.precio).toFixed(2)}</td>
+                                        <td className="font-bold text-lg">
+                                            ${Number(prod.precio).toFixed(2)}
+                                        </td>
                                         <td>
                                             {prod.menu_del_dia_productos?.precio_especial
                                                 ? `$${Number(prod.menu_del_dia_productos.precio_especial).toFixed(2)}`
@@ -236,25 +371,21 @@ export default function MenuProductos() {
                                         </td>
                                         <td>
                                             {prod.menu_del_dia_productos?.es_promocion ? (
-                                                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                                                    Sí
-                                                </span>
+                                                <span className="badge badge-yes">Sí</span>
                                             ) : (
-                                                <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
-                                                    No
-                                                </span>
+                                                <span className="badge badge-no">No</span>
                                             )}
                                         </td>
                                         <td>
                                             <button
                                                 onClick={() => removeProductFromMenu(prod.idProducto)}
                                                 disabled={removing === prod.idProducto}
-                                                className="text-red-600 hover:text-red-800"
+                                                className="btn-remove"
                                             >
                                                 {removing === prod.idProducto ? (
                                                     <Loader2 className="animate-spin" size={20} />
                                                 ) : (
-                                                    <Trash2 size={20} />
+                                                    'Quitar'
                                                 )}
                                             </button>
                                         </td>
@@ -266,61 +397,70 @@ export default function MenuProductos() {
                 )}
             </div>
 
-            {/* Sección: Productos disponibles para agregar */}
+            {/* Productos disponibles */}
             <div>
-                <h3 className="text-2xl font-bold mb-6">Productos disponibles para agregar</h3>
+                <h3 className="text-2xl font-bold mb-6 text-gray-800">
+                    Productos disponibles para agregar
+                </h3>
 
-                <div className="table-container-expanded">
-                    <table className="table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Imagen</th>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Precio</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {allProducts
-                                .filter(p => !menuProducts.some(mp => mp.idProducto === p.idProducto))
-                                .map(prod => (
-                                    <tr key={prod.idProducto}>
-                                        <td>
-                                            <img
-                                                src={prod.imagen || '/placeholder.jpg'}
-                                                alt={prod.nombre}
-                                                className="product-image-fixed"
-                                                onError={e => e.target.src = '/placeholder.jpg'}
-                                            />
-                                        </td>
-                                        <td className="font-semibold">{prod.nombre}</td>
-                                        <td>{prod.categoria}</td>
-                                        <td className="font-bold text-lg">${Number(prod.precio).toFixed(2)}</td>
-                                        <td>
-                                            <button
-                                                onClick={() => addProductToMenu(prod.idProducto)}
-                                                disabled={adding === prod.idProducto}
-                                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
-                                            >
-                                                {adding === prod.idProducto ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin" size={18} />
-                                                        Agregando...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Plus size={18} />
-                                                        Agregar
-                                                    </>
-                                                )}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                        </tbody>
-                    </table>
-                </div>
+                {allProducts.length === menuProducts.length ? (
+                    <div className="empty-state">
+                        <p className="text-xl text-gray-600">No hay más productos disponibles</p>
+                    </div>
+                ) : (
+                    <div className="table-container-expanded">
+                        <table className="table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {allProducts
+                                    .filter(p => !menuProducts.some(mp => mp.idProducto === p.idProducto))
+                                    .map(prod => (
+                                        <tr key={prod.idProducto}>
+                                            <td>
+                                                <img
+                                                    src={prod.imagen || '/placeholder.jpg'}
+                                                    alt={prod.nombre}
+                                                    className="product-image-fixed"
+                                                    onError={e => { e.target.src = '/placeholder.jpg'; }}
+                                                />
+                                            </td>
+                                            <td className="font-semibold">{prod.nombre}</td>
+                                            <td>{prod.categoria || '—'}</td>
+                                            <td className="font-bold text-lg">
+                                                ${Number(prod.precio).toFixed(2)}
+                                            </td>
+                                            <td>
+                                                <button
+                                                    onClick={() => addProductToMenu(prod.idProducto)}
+                                                    disabled={adding === prod.idProducto}
+                                                    className="btn-add"
+                                                >
+                                                    {adding === prod.idProducto ? (
+                                                        <>
+                                                            <Loader2 className="animate-spin" size={18} />
+                                                            Agregando...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Plus size={18} /> Agregar
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );
