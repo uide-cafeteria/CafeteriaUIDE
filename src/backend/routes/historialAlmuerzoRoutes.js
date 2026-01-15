@@ -6,7 +6,8 @@ const router = express.Router();
 
 // Rutas para mostrar el historial, para el usuario, y para el administrador
 router.get('/usuario/mostrar', verificarToken, historialAlmuerzoController.mostrarHistorialUsuario);
-router.get('/admin/mostrar', verificarToken, historialAlmuerzoController.mostrarHistorialAdmin);
+router.get('/admin/mostrar/:idUsuario', verificarToken, historialAlmuerzoController.mostrarHistorialAdmin);
+router.get('/admin/global', verificarToken, historialAlmuerzoController.mostrarHistorialGlobalAdmin);
 
 //Ruta para registrar almuerzo
 router.post('/registrar', verificarToken, historialAlmuerzoController.registrarAlmuerzo);
