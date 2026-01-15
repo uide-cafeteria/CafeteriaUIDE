@@ -1,8 +1,12 @@
 // lib/pages/home_page.dart
 import 'package:cafeteria_uide/utils/secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import '../../models/menu_del_dia.dart';
+import '../../models/promocion.dart';
 import '../../services/menu_services.dart';
+import '../../services/promocion_service.dart';
 import '../../config/app_theme.dart';
 import '../layout/widgets/dish_card.dart';
 import '../layout/widgets/day_selector.dart';
@@ -20,6 +24,11 @@ class _HomePageState extends State<HomePage> {
   bool _isLoadingMenu = true;
   String? _menuError;
 
+  // Promociones
+  List<Promotion> _promotions = [];
+  bool _isLoadingPromos = true;
+  String? _promosError;
+
   bool _isLoggedIn = false;
   String _userName = "Invitado";
   String _codigoUnico = "";
@@ -31,6 +40,7 @@ class _HomePageState extends State<HomePage> {
     _selectedDay = _getCurrentDiaSemana();
     _loadUserData();
     _loadMenu();
+    _loadPromotions();
   }
 
   // === LÓGICA MANTENIDA INTACTA ===
@@ -78,14 +88,30 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _loadPromotions() async {
+    setState(() {
+      _isLoadingPromos = true;
+      _promosError = null;
+    });
+
+    final result = await PromocionService.obtenerPromocionesActivas();
+
+    setState(() {
+      if (result['success'] == true) {
+        _promotions = result['promociones'] as List<Promotion>;
+      } else {
+        _promosError = result['message'] ?? "No hay promociones activas";
+      }
+      _isLoadingPromos = false;
+    });
+  }
+
   Future<void> _onRefresh() async {
-    // Solo recargamos si estamos viendo el día de hoy
-    if (_selectedDay == _getCurrentDiaSemana()) {
-      await _loadMenu();
-    } else {
-      // Opcional: podrías mostrar un mensaje o simplemente no hacer nada
-      await Future.delayed(const Duration(milliseconds: 400));
-    }
+    // Recargamos todo lo que corresponda
+    await Future.wait([
+      if (_selectedDay == _getCurrentDiaSemana()) _loadMenu(),
+      _loadPromotions(),
+    ]);
   }
 
   void _onDayChanged(DiaSemana day) {
@@ -121,104 +147,36 @@ class _HomePageState extends State<HomePage> {
     return 'Buenas noches';
   }
 
-  // === WIDGETS DE UI MEJORADOS ===
+  // === SECCIÓN PROMOCIONES DINÁMICA ===
+  Widget _buildPromotionsSection() {
+    if (_isLoadingPromos) {
+      return const SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
 
-  Widget _buildPromoCards() {
-    final List<Map<String, dynamic>> promos = [
-      {
-        'title': 'Combo Almuerzo',
-        'subtitle': 'Sopa + Plato Fuerte + Jugo',
-        'price': '\$3.50',
-        'color': AppTheme.primaryColor,
-        'icon': Icons.lunch_dining,
-      },
-      {
-        'title': 'Promo Estudiante',
-        'subtitle': 'Postre gratis por tu cumple',
-        'price': 'GRATIS',
-        'color': Colors.orange[700],
-        'icon': Icons.cake,
-      },
-    ];
+    if (_promosError != null || _promotions.isEmpty) {
+      return SizedBox(
+        height: 140,
+        child: Center(
+          child: Text(
+            _promosError ?? "Sin ofertas por ahora",
+            style: TextStyle(color: Colors.grey[600], fontSize: 15),
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
-      height: 150,
+      height: 240,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: promos.length,
+        itemCount: _promotions.length,
         itemBuilder: (context, index) {
-          final promo = promos[index];
-          return Container(
-            width: MediaQuery.of(context).size.width * 0.75,
-            margin: const EdgeInsets.only(right: 15, bottom: 10),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [promo['color'], promo['color'].withOpacity(0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: promo['color'].withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  right: -10,
-                  bottom: -10,
-                  child: Icon(promo['icon'], size: 80, color: Colors.white12),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      promo['title'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      promo['subtitle'],
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        promo['price'],
-                        style: TextStyle(
-                          color: promo['color'],
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
+          return HomePromotionCard(promotion: _promotions[index]);
         },
       ),
     );
@@ -232,7 +190,6 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: RefreshIndicator(
-          // Color del indicador de refresco (puedes personalizarlo)
           color: AppTheme.primaryColor,
           backgroundColor: Colors.white,
           onRefresh: _onRefresh,
@@ -241,7 +198,7 @@ class _HomePageState extends State<HomePage> {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
-              // === HEADER (UX REVISADO) ===
+              // === HEADER ===
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
@@ -279,16 +236,24 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // === SECCIÓN PROMOCIONES ===
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
-                  child: Text(
-                    "Ofertas de hoy",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Ofertas y Promociones",
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              SliverToBoxAdapter(child: _buildPromoCards()),
+              SliverToBoxAdapter(child: _buildPromotionsSection()),
 
               // === SELECTOR DE DÍA ===
               SliverToBoxAdapter(
@@ -431,6 +396,151 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(color: Colors.grey[500], fontSize: 16),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Widget para tarjeta de promoción en Home (estilo similar a PromotionsPage pero más compacto)
+class HomePromotionCard extends StatelessWidget {
+  final Promotion promotion;
+
+  const HomePromotionCard({super.key, required this.promotion});
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('dd MMM', 'es');
+    final start = dateFormat.format(promotion.fechaInicio);
+    final end = dateFormat.format(promotion.fechaFin);
+
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.78,
+      margin: const EdgeInsets.only(right: 16, bottom: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.14),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Imagen de fondo
+            CachedNetworkImage(
+              imageUrl:
+                  promotion.imagen ??
+                  'https://via.placeholder.com/500x280?text=Promo',
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(color: Colors.grey[300]),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey[400],
+                child: const Icon(
+                  Icons.local_offer,
+                  size: 60,
+                  color: Colors.white70,
+                ),
+              ),
+            ),
+
+            // Degradado inferior
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.75)],
+                  stops: const [0.4, 1.0],
+                ),
+              ),
+            ),
+
+            // Contenido
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF97316),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Text(
+                      'Oferta Activa',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Text(
+                    promotion.titulo,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      height: 1.15,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  if (promotion.descripcion != null &&
+                      promotion.descripcion!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      promotion.descripcion!,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.95),
+                        fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '\$${promotion.precio}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        '$start - $end',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
