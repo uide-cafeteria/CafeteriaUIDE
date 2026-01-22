@@ -1,0 +1,93 @@
+Soy Anthony Sánchez de la Carrera de Tecnología y Teleformación.
+Tenemos que levantar requisitos.
+En este caso estamos preguntando a la comunidad universitaria
+sobre una aplicación que estamos desarrollando,
+que sería una aplicación para la cafetería de la universidad.
+Como primera pregunta sería, en Gultoreva,
+¿ustedes pueden realizar pedidos de forma anticipada
+sin necesidad de estar aquí en la cafetería?
+O sea, les explico,
+¿estar tal vez fuera de la universidad o en una hora de clases
+y poder hacer un pedido anticipado,
+especificando la hora en la que ustedes quieran recoger el pedido?
+Sí, sí.
+Me gustaría que así no se evitamos la vida que siempre tenemos.
+Se ahorra tiempo, o sea,
+se dan solo diez minutos y entonces ya sabemos desde el comienzo.
+Sí, me gustaría que emplearan en este momento
+para que también nosotros tengamos,
+o sea, la verdad es que me gustaría tener un poco más de tiempo
+y comer más salud.
+Claro, o sea, el punto sería ahorrar tiempo
+y evitarse las grandes tiras, ¿verdad?
+Sí.
+Otro punto sería,
+¿qué información del producto les gustaría a ustedes ver en la plataforma?
+¿Puede ser nombres, imágenes, pruebas y los ingredientes
+que tenga cada producto?
+Sí, los ingredientes sobre todo,
+porque hay cosas que personalmente no quieren o no les gustan,
+entonces hay que poder elegir
+o ya tachar algún ingrediente que les guste.
+Sería una buena opción.
+Por eso es que un hombre siempre se te arrastra un pollo en la cara.
+Bueno, por mi parte también es que implica también la presentación,
+ver cómo está realmente,
+cómo sirven los plazos y es realmente determinante.
+Claro, pues sí, entonces bajo esa misma premisa
+les gustaría a ustedes poder como disfrutar su pedido,
+tal vez agregar algo al pedido
+o quitarle algo al pedido si no es asombrado.
+Sí, agregar o quitar estaría bien.
+Dentro del plazo.
+Sí, está bien.
+¿Les gustaría a ustedes que la aplicación
+tenga métodos de pago?
+Ya saben, como las pasajeras de pago actuales,
+como ahorita, de una forma
+para poder facilitar y evitarse el pago en caja.
+Sí, ahora las transferencias es lo que más,
+es más útil, porque efectivamente
+no es tan fácil de hacer pago.
+La tarjeta.
+La tarjeta de igual, el ahorro de tiempo y todo.
+Está bien.
+Sí, ya como andar igual nos implica
+a que el pedido sea realmente,
+ya darnos por hechos,
+si queremos hacer pago.
+¿Tal vez alguna recomendación
+de cómo se debería ver
+este sistema?
+Es importante, no sé,
+que trate de ser lo más inuitivo
+a la aplicación,
+porque métodos de pago,
+donde están, quizás con mico,
+no es claro si es el tiempo o el tiempo.
+Bueno, o sea, que no se largue tanto,
+no se hiciera tanto,
+eso es lo que realmente es importante.
+Ya, entonces, bajo esta premisa
+también se quiere o se espera
+que la interfaz gráfica
+sea demasiado emitida y muy fácil
+para utilizar, ¿verdad?
+Ya resultó todo, chicos. Muchísimas gracias.
+Gracias.
+Soy Antonio Sánchez,
+estudiante de la carrera de tecnología de la información
+y me encuentro en la cafetería
+levantando todos los requisitos necesarios
+para hacer la aplicación de la forma más óptima posible.
+Como primera, pregunta tendría,
+¿te gustaría poder realizar
+pedidos anticipados
+sin la necesidad de estar aquí
+en la cafetería?
+¿Te gustaría aquí poder realizar un pedido
+anticipado estando en tu aula
+de clases para poder venir
+y recoger el pedido en una hora
+específica?
+Sí, porque sería más fácil.
