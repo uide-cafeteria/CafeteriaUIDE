@@ -1,0 +1,10 @@
+{
+    "@@locale": "es",
+    "appTitle": "Cafetería Universitaria",
+    "settings": "Configuración",
+    "darkMode": "Modo Oscuro",
+    "lightMode": "Modo Claro",
+    "showQr": "Mostrar QR",
+    "hideQr": "Ocultar QR",
+    "hello": "Hola"
+}

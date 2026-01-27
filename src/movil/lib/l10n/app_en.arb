@@ -1,0 +1,10 @@
+{
+    "@@locale": "en",
+    "appTitle": "University Cafeteria",
+    "settings": "Settings",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "showQr": "Show QR",
+    "hideQr": "Hide QR",
+    "hello": "Hello"
+}
