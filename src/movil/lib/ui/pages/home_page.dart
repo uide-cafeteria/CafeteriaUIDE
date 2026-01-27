@@ -11,6 +11,10 @@ import '../../services/promocion_service.dart';
 import '../../config/app_theme.dart';
 import '../layout/widgets/dish_card.dart';
 import '../layout/widgets/day_selector.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -176,11 +180,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
+    if (hour < 12)
+      return AppLocalizations.of(
+        context,
+      )!.hello; // Simplified for now or add specific greetings to arb
+    if (hour < 18) return AppLocalizations.of(context)!.hello;
+    return AppLocalizations.of(context)!.hello;
   }
 
   IconData _getGreetingIcon() {
@@ -450,10 +457,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _getGreeting(),
+                                      _getGreeting(context),
                                       style: TextStyle(
                                         fontSize: 13,
-                                        color: Colors.grey[600],
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.color,
                                         fontWeight: FontWeight.w500,
                                         letterSpacing: 0.5,
                                       ),
@@ -463,16 +472,32 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       _isLoadingUser
                                           ? 'Cargando...'
                                           : _userName,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: AppTheme.primaryColor,
+                                        color: Theme.of(context).primaryColor,
                                         letterSpacing: -0.5,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
+                              ),
+
+                              // Theme Toggle
+                              IconButton(
+                                icon: Icon(
+                                  Provider.of<ThemeProvider>(context).isDarkMode
+                                      ? Icons.dark_mode_rounded
+                                      : Icons.light_mode_rounded,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                                onPressed: () {
+                                  Provider.of<ThemeProvider>(
+                                    context,
+                                    listen: false,
+                                  ).toggleTheme();
+                                },
                               ),
 
                               // Menú de usuario mejorado
