@@ -11,6 +11,10 @@ class AppRoutes {
     '/main': (_) => const MainScreen(),
     '/home': (_) => const MainScreen(),
     '/login': (_) => const LoginScreen(),
+    '/profile': (_) => Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: const Center(child: Text('Profile')),
+    ),
     '/promotions': (_) => Scaffold(
       appBar: AppBar(title: const Text('Promotions')),
       body: const Center(child: Text('Promotions')),

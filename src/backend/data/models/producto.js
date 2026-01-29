@@ -76,6 +76,10 @@ const Producto = sequelize.define('producto', {
       key: 'idUsuario'
     }
   },
+  especial: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   activo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
