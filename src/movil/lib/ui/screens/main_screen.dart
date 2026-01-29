@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../pages/home_page.dart';
 import '../pages/promotions_page.dart';
 import '../pages/historial_page.dart';
+import '../pages/profile_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,6 +18,7 @@ class _MainScreenState extends State<MainScreen> {
     HomePage(),
     PromotionsPage(),
     HistorialPage(),
+    ProfilePage(),
   ];
 
   @override
@@ -55,6 +57,11 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.history_outlined),
               activeIcon: Icon(Icons.history),
               label: 'Historial',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Perfil',
             ),
           ],
         ),
