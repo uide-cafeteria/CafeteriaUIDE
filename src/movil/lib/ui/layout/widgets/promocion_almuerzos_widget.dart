@@ -78,9 +78,11 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
                 boxShadow: [
                   BoxShadow(
                     color: _flipAnimation.value > 0.5
-                        ? AppTheme.accentColor.withOpacity(0.6)
+                        ? AppTheme.accentColor.withOpacity(
+                            0.6 * _flipAnimation.value,
+                          )
                         : Colors.black.withOpacity(0.1),
-                    blurRadius: _flipAnimation.value > 0.5 ? 24 : 12,
+                    blurRadius: 20,
                     spreadRadius: _flipAnimation.value > 0.5 ? 8 : 0,
                     offset: const Offset(0, 8),
                   ),
@@ -121,6 +123,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
         ),
         const SizedBox(height: 28),
 
+        // Grid de sellos (igual que antes)
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -144,7 +147,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
                       : Border.all(color: AppTheme.accentColor, width: 2),
                 ),
                 child: Icon(
-                  Icons.cake_rounded,
+                  Icons.card_giftcard,
                   color: completado
                       ? Colors.white
                       : AppTheme.accentColor.withOpacity(0.6),
@@ -234,21 +237,10 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
                     width: 180,
                     height: 180,
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "No hay código QR disponible",
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            "Escanea en caja para sumar puntos",
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                      child: Text(
+                        "No hay código QR disponible",
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   )
@@ -272,8 +264,16 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
 
           const SizedBox(height: 16),
 
+          const Text(
+            "Escanea en caja para sumar puntos",
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 12),
+
           TextButton(
-            onPressed: () => _toggleFlip(),
+            onPressed: _toggleFlip,
             child: const Text(
               "Volver",
               style: TextStyle(color: AppTheme.accentColor),

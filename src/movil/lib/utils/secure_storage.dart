@@ -38,15 +38,15 @@ class SecureStorage {
   // ────────────────────────────────────────────────
   // Email
   // ────────────────────────────────────────────────
-  static Future<void> saveEmail(String? email) async {
-    if (email == null || email.isEmpty) return;
-    await _storage.write(key: 'email', value: email);
+  static Future<void> saveEmail(String? correo) async {
+    if (correo == null || correo.isEmpty) return;
+    await _storage.write(key: 'correo', value: correo);
   }
 
-  static Future<String?> getEmail() async => await _storage.read(key: 'email');
+  static Future<String?> getEmail() async => await _storage.read(key: 'correo');
 
   static Future<void> deleteEmail() async =>
-      await _storage.delete(key: 'email');
+      await _storage.delete(key: 'correo');
 
   // ────────────────────────────────────────────────
   // Loyalty Token

@@ -24,6 +24,7 @@ class AuthService {
         final data = jsonDecode(response.body);
         final token = data['token'] ?? data['accessToken'];
         final username = data['usuario']['username'];
+        final correo = data['usuario']['correo'];
         final codigoUnico = data['usuario']['codigoUnico'];
         final loyaltyToken = data['usuario']['loyalty_token'];
 
@@ -31,6 +32,7 @@ class AuthService {
           await SecureStorage.saveToken(token);
           await SecureStorage.saveUserName(username);
           await SecureStorage.saveCodigoUnico(codigoUnico);
+          await SecureStorage.saveEmail(correo);
           await SecureStorage.saveLoyaltyToken(loyaltyToken);
           return {"success": true, "data": data};
         }
