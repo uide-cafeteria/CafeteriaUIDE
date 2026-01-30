@@ -17,7 +17,6 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = const [
     HomePage(),
     PromotionsPage(),
-    HistorialPage(),
     ProfilePage(),
   ];
 
@@ -52,11 +51,6 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.local_offer_outlined),
               activeIcon: Icon(Icons.local_offer),
               label: 'Promociones',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_outlined),
-              activeIcon: Icon(Icons.history),
-              label: 'Historial',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),

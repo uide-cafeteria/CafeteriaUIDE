@@ -36,11 +36,12 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       // 1. Datos del usuario desde SecureStorage
       final name = await SecureStorage.getUserName() ?? "Usuario";
-      final correo =
-          await SecureStorage.getEmail() ??
-          "No disponible"; // si tienes email guardado
+      final correo = await SecureStorage.getEmail() ?? "No disponible";
 
-      // 2. Progreso real desde HistorialService
+      // 2. ¡Aquí falta el token! Agrégalo
+      final loyaltyToken = await SecureStorage.getLoyaltyToken() ?? "";
+
+      // 3. Progreso desde servicio
       final resultado = await HistorialService.obtenerMiHistorial();
 
       if (resultado['success'] == true) {
@@ -50,6 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _userName = name;
           _correo = correo;
+          _loyaltyToken = loyaltyToken; // ← ¡esto faltaba!
           _sellosCompletos = (progreso['pagados'] as int? ?? 0) % 10;
           _isLoading = false;
         });
