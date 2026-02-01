@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "890244852123",
+    "project_id": "cafeteriauide",
+    "storage_bucket": "cafeteriauide.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890244852123:android:49db33bc0fbd294e64993e",
+        "android_client_info": {
+          "package_name": "ec.edu.uide.loja.cafeteria_uide"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "890244852123-jpv552j6c4l15ht7rebkksd9ru940ilu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNno0hEIOXugaR5Ao4GSytOrScclrIJ5g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "890244852123-jpv552j6c4l15ht7rebkksd9ru940ilu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
