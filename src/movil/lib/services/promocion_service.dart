@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/promocion.dart';
 
 class PromocionService {
-  static const String baseUrl = "http://localhost:3001";
+  static const String baseUrl = "http://192.168.101.61:3001";
 
   static Future<Map<String, dynamic>> obtenerPromocionesActivas() async {
     final url = Uri.parse("$baseUrl/api/promocion/mostrar");
