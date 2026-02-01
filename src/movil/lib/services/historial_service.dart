@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../utils/secure_storage.dart';
 
 class HistorialService {
-  static const String baseUrl = "http://localhost:3001";
+  static const String baseUrl = "http://192.168.101.61:3001";
 
   static Future<Map<String, dynamic>> obtenerMiHistorial() async {
     final token = await SecureStorage.getToken();
