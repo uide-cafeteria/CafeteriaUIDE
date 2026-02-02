@@ -2,6 +2,7 @@ import MenuDelDia from '../data/models/menuDelDia.js';
 import MenuDelDiaProducto from '../data/models/menuDelDiaProducto.js';
 import Producto from '../data/models/producto.js';
 import { Op } from 'sequelize';
+import { sendNotificationToTopic } from '../config/firebase.js';
 
 const menuDelDiaController = {
 
@@ -20,7 +21,6 @@ const menuDelDiaController = {
             };
             const diaSemana = diaSemanaMap[hoy.getDay()];
 
-            // Buscar el menú activo para el día de la semana actual
             const menuActivo = await MenuDelDia.findOne({
                 where: {
                     activo: true,
@@ -30,7 +30,7 @@ const menuDelDiaController = {
                     model: Producto,
                     as: 'productos',
                     through: {
-                        attributes: ['precio_especial', 'es_promocion'] // Trae estos campos de la tabla intermedia
+                        attributes: ['precio_especial', 'es_promocion']
                     },
                     where: { activo: true },
                     required: false
@@ -73,7 +73,7 @@ const menuDelDiaController = {
                 nombre,
                 dia_semana,
                 fecha_especifica: fecha_especifica || null,
-                activo: false // Por defecto no activo
+                activo: false
             });
 
             res.status(201).json({
@@ -122,7 +122,6 @@ const menuDelDiaController = {
             });
 
             if (!created) {
-                // Si ya existe, actualizamos
                 await relacion.update({ precio_especial, es_promocion });
             }
 
@@ -140,7 +139,7 @@ const menuDelDiaController = {
         }
     },
 
-    // 4. Activar un menú (desactiva los otros del mismo día)
+    // 4. Activar un menú (desactiva los otros del mismo día) → AQUÍ ESTÁ LA MODIFICACIÓN
     activarMenu: async (req, res) => {
         try {
             if (req.usuario.rol !== 'administrador') {
@@ -154,7 +153,9 @@ const menuDelDiaController = {
                 return res.status(404).json({ status: false, message: 'Menú no encontrado' });
             }
 
-            // Desactivar todos los menús del mismo día_semana (y fecha_especifica si aplica)
+            const wasActive = menu.activo;  // Guardamos el estado anterior
+
+            // Desactivar todos los menús del mismo día_semana (excepto el actual)
             await MenuDelDia.update(
                 { activo: false },
                 {
@@ -165,24 +166,41 @@ const menuDelDiaController = {
                 }
             );
 
-            // Activar o desactivar si se encuenta activo el seleccionado
-            if (menu.activo != true) {
-                menu.activo = true;
-                await menu.save();
-            } else {
-                menu.activo = false;
-                await menu.save();
+            // Cambiar estado del menú seleccionado
+            menu.activo = !menu.activo;  // Toggle (activa si estaba inactivo, desactiva si estaba activo)
+            await menu.save();
+
+            // Enviar notificación SOLO cuando se ACTIVA (de inactivo → activo)
+            if (!wasActive && menu.activo) {
+                try {
+                    await sendNotificationToTopic(
+                        'menus_diarios',                           // topic al que los usuarios deben suscribirse
+                        '🍽️ ¡Nuevo Menú del Día Disponible!',
+                        `Menú para ${menu.dia_semana}: ${menu.nombre}`,
+                        {
+                            tipo: 'menu_del_dia',
+                            menu_id: menu.idMenu.toString(),
+                            dia_semana: menu.dia_semana,
+                            timestamp: new Date().toISOString()
+                        }
+                    );
+                    console.log(`Notificación enviada para menú activado: ${menu.nombre}`);
+                } catch (notifError) {
+                    console.error('Error al enviar notificación FCM:', notifError);
+                    // No bloqueamos la respuesta al cliente si falla la notificación
+                }
             }
 
             res.status(200).json({
                 status: true,
-                message: `Menú "${menu.nombre}" estado cambiado para ${menu.dia_semana}`,
+                message: `Menú "${menu.nombre}" ${menu.activo ? 'activado' : 'desactivado'} para ${menu.dia_semana}`,
                 menu
             });
         } catch (error) {
+            console.error('Error en activarMenu:', error);
             res.status(500).json({
                 status: false,
-                message: 'Error al activar el menú',
+                message: 'Error al cambiar estado del menú',
                 error: error.message
             });
         }
@@ -200,7 +218,7 @@ const menuDelDiaController = {
                     model: Producto,
                     as: 'productos',
                     through: {
-                        attributes: ['precio_especial', 'es_promocion'] // opcional: trae campos extra
+                        attributes: ['precio_especial', 'es_promocion']
                     }
                 }],
                 order: [['dia_semana', 'ASC'], ['nombre', 'ASC']]
@@ -220,7 +238,7 @@ const menuDelDiaController = {
         }
     },
 
-    // 6. Eliminar un menú completo (cascade borra los productos asociados)
+    // 6. Eliminar un menú completo
     eliminarMenu: async (req, res) => {
         try {
             if (req.usuario.rol !== 'administrador') {
@@ -289,11 +307,11 @@ const menuDelDiaController = {
         }
     },
 
-    //8. Lista todos los productos en un menú diario mediante su id
+    // 8. Lista todos los productos en un menú diario mediante su id
     listarProductosPorMenu: async (req, res) => {
         try {
             const { idMenu } = req.params;
-            // Verificar que el menú existe
+
             const menu = await MenuDelDia.findByPk(idMenu);
             if (!menu) {
                 return res.status(404).json({
@@ -302,10 +320,9 @@ const menuDelDiaController = {
                 });
             }
 
-            // Obtener los productos asociados
             const productos = await MenuDelDia.findOne({
                 where: { idMenu },
-                attributes: ['idMenu', 'nombre', 'dia_semana', 'activo'], // info básica del menú
+                attributes: ['idMenu', 'nombre', 'dia_semana', 'activo'],
                 include: [{
                     model: Producto,
                     as: 'productos',
@@ -321,12 +338,11 @@ const menuDelDiaController = {
                         'imagen',
                         'activo'
                     ],
-                    where: { activo: true }, // opcional: solo productos activos
+                    where: { activo: true },
                     required: false
                 }]
             });
 
-            // Si no hay productos, devolvemos array vacío pero con info del menú
             const productosLista = productos?.productos || [];
 
             res.status(200).json({
@@ -340,7 +356,6 @@ const menuDelDiaController = {
                 },
                 productos: productosLista
             });
-
         } catch (error) {
             console.error('Error al listar productos del menú:', error);
             res.status(500).json({

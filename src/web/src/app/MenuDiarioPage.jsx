@@ -165,7 +165,7 @@ export default function MenuDiarioPage({ onLogout }) {
             try {
                 setLoadingMenus(true);
                 const token = localStorage.getItem('authToken');
-                const res = await fetch('http://localhost:3001/api/menu/mostrar/admin', {
+                const res = await fetch('http://api-cafeteria.uidehub.tech/api/menu/mostrar/admin', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error();
@@ -183,7 +183,7 @@ export default function MenuDiarioPage({ onLogout }) {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch('http://localhost:3001/api/usuario/logout/admin', {
+            await fetch('http://api-cafeteria.uidehub.tech/api/usuario/logout/admin', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -217,7 +217,7 @@ export default function MenuDiarioPage({ onLogout }) {
         setTogglingMenu(menu.idMenu);
         const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`http://localhost:3001/api/menu/${menu.idMenu}/activar`, {
+            const res = await fetch(`http://api-cafeteria.uidehub.tech/api/menu/${menu.idMenu}/activar`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -253,10 +253,10 @@ export default function MenuDiarioPage({ onLogout }) {
         try {
             let url, method;
             if (editingMenu) {
-                url = `http://localhost:3001/api/menu/actualizar/${editingMenu.idMenu}`;
+                url = `http://api-cafeteria.uidehub.tech/api/menu/actualizar/${editingMenu.idMenu}`;
                 method = 'PUT';
             } else {
-                url = 'http://localhost:3001/api/menu/crear';
+                url = 'http://api-cafeteria.uidehub.tech/api/menu/crear';
                 method = 'POST';
             }
             const res = await fetch(url, {
