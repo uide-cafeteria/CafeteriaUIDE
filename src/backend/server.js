@@ -17,7 +17,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 const HOST = process.env.HOST || 'localhost';
 
 app.get('/api/health', (req, res) => {
@@ -32,6 +32,6 @@ testConnection();
 
 setupAssociations();
 
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1', () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

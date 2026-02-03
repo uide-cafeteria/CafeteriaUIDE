@@ -306,7 +306,7 @@ export default function PromocionPage({ onLogout }) {
                 try {
                     setLoading(true);
                     const token = localStorage.getItem('authToken');
-                    const res = await fetch('http://api-cafeteria.uidehub.tech/api/promocion/mostrar/admin', {
+                    const res = await fetch('https://api-cafeteria.uidehub.tech/api/promocion/mostrar/admin', {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
@@ -332,7 +332,7 @@ export default function PromocionPage({ onLogout }) {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch('http://api-cafeteria.uidehub.tech/api/usuario/logout/admin', {
+            await fetch('https://api-cafeteria.uidehub.tech/api/usuario/logout/admin', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -378,7 +378,7 @@ export default function PromocionPage({ onLogout }) {
         setTogglingPromo(promo.idPromocion);
         const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`http://api-cafeteria.uidehub.tech/api/promocion/estado/${promo.idPromocion}`, {
+            const res = await fetch(`https://api-cafeteria.uidehub.tech/api/promocion/estado/${promo.idPromocion}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -438,10 +438,10 @@ export default function PromocionPage({ onLogout }) {
         try {
             let url, method;
             if (editingPromo) {
-                url = `http://api-cafeteria.uidehub.tech/api/promocion/actualizar/${editingPromo.idPromocion}`;
+                url = `https://api-cafeteria.uidehub.tech/api/promocion/actualizar/${editingPromo.idPromocion}`;
                 method = 'PUT';
             } else {
-                url = 'http://api-cafeteria.uidehub.tech/api/promocion/crear';
+                url = 'https://api-cafeteria.uidehub.tech/api/promocion/crear';
                 method = 'POST';
             }
 
