@@ -35,7 +35,7 @@ const HistorialAlmuerzo = sequelize.define(
         },
         fecha_registro: {
             type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW,
+            defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
         },
     },
     {

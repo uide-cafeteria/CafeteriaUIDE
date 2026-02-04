@@ -183,7 +183,7 @@ const historialAlmuerzoController = {
             const yaConsumio = await HistorialAlmuerzo.findOne({
                 where: {
                     idUsuario: estudiante.idUsuario,
-                    fecha: hoy
+                    fecha: sequelize.literal('CURRENT_DATE')
                 }
             });
 
@@ -208,10 +208,8 @@ const historialAlmuerzoController = {
             // 6. Registrar el almuerzo
             const nuevoAlmuerzo = await HistorialAlmuerzo.create({
                 idUsuario: estudiante.idUsuario,
-                fecha: hoy,
                 registrado_por: req.usuario.idUsuario,
                 es_gratis: esGratisHoy,
-                fecha_registro: new Date()
             });
 
             // 7. Respuesta exitosa
@@ -226,7 +224,7 @@ const historialAlmuerzoController = {
                         nombre: estudiante.nombre
                     },
                     almuerzo: {
-                        fecha: hoy,
+                        fecha: sequelize.literal('CURRENT_DATE'),
                         es_gratis: esGratisHoy,
                         registrado_por: req.usuario.nombre
                     },
