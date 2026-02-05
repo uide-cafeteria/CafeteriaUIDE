@@ -246,7 +246,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
                   )
                 : QrImageView(
                     data:
-                        "http://localhost:3000/scan-confirm?loyalty_token=${widget.loyaltyToken}",
+                        "http://172.16.76.0:3000/scan-confirm?loyalty_token=${widget.loyaltyToken}",
                     version: QrVersions.auto,
                     size: 180,
                     gapless: false,

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/menu_del_dia.dart';
 
 class MenuService {
-  static const String baseUrl = "http://api-cafeteria.uidehub.tech";
+  static const String baseUrl = "https://api-cafeteria.uidehub.tech";
 
   static Future<Map<String, dynamic>> obtenerMenuDelDia() async {
     final url = Uri.parse("$baseUrl/api/menu/mostrar");

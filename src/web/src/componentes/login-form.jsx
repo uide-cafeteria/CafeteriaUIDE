@@ -16,7 +16,7 @@ export function LoginForm({ onLogin }) {
     setError('')
     setLoading(true)
     try {
-      const res = await fetch('http://api-cafeteria.uidehub.tech/api/usuario/auth/admin', {
+      const res = await fetch('https://api-cafeteria.uidehub.tech/api/usuario/auth/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email, contrasenia: password })

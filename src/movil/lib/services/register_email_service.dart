@@ -5,7 +5,7 @@ import '../utils/secure_storage.dart';
 
 class RegisterEmailService {
   static const String baseUrl =
-      "http://api-cafeteria.uidehub.tech"; // ← cámbialo a tu URL real en producción
+      "https://api-cafeteria.uidehub.tech"; // ← cámbialo a tu URL real en producción
 
   /// Registra un nuevo usuario con correo
   /// Campos obligatorios: username, correo, contraseña
