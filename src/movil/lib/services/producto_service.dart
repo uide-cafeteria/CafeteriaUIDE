@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/producto.dart';
 
 class ProductoService {
-  static const String _baseUrl = "https://api-cafeteria.uidehub.tech";
+  static const String _baseUrl = "http://localhost:3002";
 
   Future<List<Producto>> obtenerProductos() async {
     final url = Uri.parse("$_baseUrl/api/producto/mostrar");

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../utils/secure_storage.dart';
 
 class AuthService {
-  static const String baseUrl = "https://api-cafeteria.uidehub.tech";
+  static const String baseUrl = "http://localhost:3002";
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/api/usuario/auth/cliente");

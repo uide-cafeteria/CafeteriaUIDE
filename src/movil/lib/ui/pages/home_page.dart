@@ -1,4 +1,5 @@
 // lib/pages/home_page.dart
+import 'package:cafeteria_uide/utils/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
@@ -6,6 +7,7 @@ import '../../config/app_theme.dart';
 import '../../models/menu_del_dia.dart';
 import '../../models/menu_del_dia_producto.dart';
 import '../../services/menu_services.dart';
+import '../../services/auth_service.dart'; // ← agregado para obtener nombre
 import '../layout/widgets/special_dish_card.dart';
 import '../layout/widgets/breakfast_dish_card.dart';
 import '../layout/widgets/dish_card.dart';
@@ -21,11 +23,22 @@ class _HomePageState extends State<HomePage> {
   MenuDelDia? _menu;
   bool _isLoading = true;
   String? _errorMessage;
+  String _userName = "Usuario"; // valor por defecto
 
   @override
   void initState() {
     super.initState();
+    _loadUserName();
     _loadMenu();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await SecureStorage.getUserName();
+    if (name != null && name.isNotEmpty && mounted) {
+      setState(() {
+        _userName = name;
+      });
+    }
   }
 
   Future<void> _loadMenu() async {
@@ -55,12 +68,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filtrado por campo 'especial' (ideal si tu BD lo usa correctamente)
+    // Filtrado por campo 'especial'
     final especialItem = _menu?.productos.firstWhereOrNull(
       (item) => item.producto.especial == true,
     );
 
-    // Desayunos: por categoría o nombre (ajusta si tienes categoría exacta)
+    // Desayunos
     final desayunos =
         _menu?.productos
             .where(
@@ -73,7 +86,7 @@ class _HomePageState extends State<HomePage> {
             .toList() ??
         [];
 
-    // Otras opciones de almuerzo: el resto que no sea desayuno ni especial
+    // Otras opciones de almuerzo
     final otrosAlmuerzos =
         _menu?.productos
             .where(
@@ -86,38 +99,12 @@ class _HomePageState extends State<HomePage> {
             .toList() ??
         [];
 
+    final now = DateTime.now();
+    final timeFormat = DateFormat("h:mm a", 'es');
+    final currentTime = timeFormat.format(now);
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              "Menú Diario UIDE",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              _getFormattedDate(), // tu función que devuelve "Lunes, 12 de Junio"
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.notifications_outlined),
-          ),
-        ],
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.primaryColor,
-        elevation: 0,
-      ),
       body: RefreshIndicator(
         onRefresh: _loadMenu,
         color: AppTheme.accentColor,
@@ -126,12 +113,135 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ESPECIAL DEL DÍA (grande)
+              // ── Header de bienvenida ────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                decoration: BoxDecoration(
+                  color: const Color(
+                    0xFF5D4037,
+                  ), // marrón oscuro estilo "bienvenido"
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.14),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Colors.white.withOpacity(0.25),
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Bienvenido de nuevo",
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.85),
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                "Hola, $_userName",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          onPressed: () {
+                            // TODO: ir a pantalla de notificaciones
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.greenAccent[400],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            "ABIERTO",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "• Cierra a las 4:00 PM",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.90),
+                              fontSize: 14,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            "UIDE Campus",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.85),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Contenido principal ─────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 20),
+
+                    // ESPECIAL DEL DÍA
                     if (_isLoading)
                       const Center(child: CircularProgressIndicator())
                     else if (_errorMessage != null)
@@ -157,69 +267,77 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
+
+                    const SizedBox(height: 28),
+
+                    // DESAYUNO
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(4, 0, 4, 12),
+                      child: Text(
+                        "Desayuno",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 240,
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : desayunos.isEmpty
+                          ? const Center(child: Text("Sin desayunos hoy"))
+                          : ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              itemCount: desayunos.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 16),
+                              itemBuilder: (context, index) {
+                                return BreakfastDishCard(
+                                  item: desayunos[index],
+                                );
+                              },
+                            ),
+                    ),
+
+                    const SizedBox(height: 36),
+
+                    // OTRAS OPCIONES DE ALMUERZO
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(4, 0, 4, 16),
+                      child: Text(
+                        "Otras Opciones de Almuerzo",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : otrosAlmuerzos.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Center(
+                              child: Text("No hay más opciones hoy"),
+                            ),
+                          )
+                        : Column(
+                            children: otrosAlmuerzos.map((item) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: DishCard(item: item),
+                              );
+                            }).toList(),
+                          ),
+
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 28),
-
-              // DESAYUNO
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                child: const Text(
-                  "Desayuno",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              SizedBox(
-                height: 240,
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : desayunos.isEmpty
-                    ? const Center(child: Text("Sin desayunos hoy"))
-                    : ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: desayunos.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 16),
-                        itemBuilder: (context, index) {
-                          return SizedBox(
-                            child: BreakfastDishCard(item: desayunos[index]),
-                          );
-                        },
-                      ),
-              ),
-
-              const SizedBox(height: 36),
-
-              // OTRAS OPCIONES DE ALMUERZO
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: const Text(
-                  "Otras Opciones de Almuerzo",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : otrosAlmuerzos.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 40),
-                        child: Center(child: Text("No hay más opciones hoy")),
-                      )
-                    : Column(
-                        children: otrosAlmuerzos.map((item) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: DishCard(item: item),
-                          );
-                        }).toList(),
-                      ),
-              ),
-
-              const SizedBox(height: 80),
             ],
           ),
         ),

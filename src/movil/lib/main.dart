@@ -14,8 +14,8 @@ import 'routes/app_routes.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es', null);
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseMessaging.instance.requestPermission();
+  //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //await FirebaseMessaging.instance.requestPermission();
   runApp(const CafeteriaApp());
 }
 
