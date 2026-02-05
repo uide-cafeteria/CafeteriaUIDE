@@ -178,7 +178,7 @@ export default function MenuProductos() {
 
             try {
                 // Menú + productos ya asociados
-                const menuRes = await fetch(`https://api-cafeteria.uidehub.tech/api/menu/${idMenu}/productos`, {
+                const menuRes = await fetch(`http://localhost:3002/api/menu/${idMenu}/productos`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!menuRes.ok) throw new Error('No se pudo cargar el menú');
@@ -187,7 +187,7 @@ export default function MenuProductos() {
                 setMenuProducts(menuData.productos || []);
 
                 // Todos los productos disponibles
-                const productsRes = await fetch('https://api-cafeteria.uidehub.tech/api/producto/mostrar', {
+                const productsRes = await fetch('http://localhost:3002/api/producto/mostrar', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!productsRes.ok) throw new Error('No se pudieron cargar productos');
@@ -209,7 +209,7 @@ export default function MenuProductos() {
         const token = localStorage.getItem('authToken');
 
         try {
-            const res = await fetch(`https://api-cafeteria.uidehub.tech/api/menu/agregar/${idMenu}/producto`, {
+            const res = await fetch(`http://localhost:3002/api/menu/agregar/${idMenu}/producto`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ export default function MenuProductos() {
         const token = localStorage.getItem('authToken');
 
         try {
-            const res = await fetch(`https://api-cafeteria.uidehub.tech/api/menu/eliminar/${idMenu}/producto/${idProducto}`, {
+            const res = await fetch(`http://localhost:3002/api/menu/eliminar/${idMenu}/producto/${idProducto}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -257,7 +257,7 @@ export default function MenuProductos() {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch('https://api-cafeteria.uidehub.tech/api/usuario/logout/admin', {
+            await fetch('http://localhost:3002/api/usuario/logout/admin', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });

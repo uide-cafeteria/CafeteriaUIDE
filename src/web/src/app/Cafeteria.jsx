@@ -182,7 +182,7 @@ export default function Cafeteria({ onLogout }) {
         try {
           setLoadingProductos(true);
           const token = localStorage.getItem('authToken');
-          const res = await fetch('https://api-cafeteria.uidehub.tech/api/producto/mostrar', {
+          const res = await fetch('http://localhost:3002/api/producto/mostrar', {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (!res.ok) throw new Error();
@@ -211,7 +211,7 @@ export default function Cafeteria({ onLogout }) {
   const handleLogout = async () => {
     const token = localStorage.getItem('authToken');
     try {
-      await fetch('https://api-cafeteria.uidehub.tech/api/usuario/logout/admin', {
+      await fetch('http://localhost:3002/api/usuario/logout/admin', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -265,7 +265,7 @@ export default function Cafeteria({ onLogout }) {
     fd.append('activo', !product.activo);
     fd.append('imagen', product.imagen);
     try {
-      const res = await fetch(`https://api-cafeteria.uidehub.tech/api/producto/actualizar/${product.idProducto}`, {
+      const res = await fetch(`http://localhost:3002/api/producto/actualizar/${product.idProducto}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: fd
@@ -313,8 +313,8 @@ export default function Cafeteria({ onLogout }) {
     else if (formData.imageUrl?.trim()) fd.append('imagen', formData.imageUrl.trim());
     try {
       const url = editingItem
-        ? `https://api-cafeteria.uidehub.tech/api/producto/actualizar/${editingItem.idProducto}`
-        : 'https://api-cafeteria.uidehub.tech/api/producto/crear';
+        ? `http://localhost:3002/api/producto/actualizar/${editingItem.idProducto}`
+        : 'http://localhost:3002/api/producto/crear';
       const method = editingItem ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,

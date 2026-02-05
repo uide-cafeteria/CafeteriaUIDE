@@ -7,10 +7,11 @@ import '../../config/app_theme.dart';
 import '../../models/menu_del_dia.dart';
 import '../../models/menu_del_dia_producto.dart';
 import '../../services/menu_services.dart';
-import '../../services/auth_service.dart'; // ← agregado para obtener nombre
+import '../../services/auth_service.dart';
 import '../layout/widgets/special_dish_card.dart';
 import '../layout/widgets/breakfast_dish_card.dart';
 import '../layout/widgets/dish_card.dart';
+import '../layout/widgets/header_welcome.dart'; // ← importamos el widget actualizado
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   MenuDelDia? _menu;
   bool _isLoading = true;
   String? _errorMessage;
-  String _userName = "Usuario"; // valor por defecto
+  String _userName = "Usuario";
 
   @override
   void initState() {
@@ -68,12 +69,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filtrado por campo 'especial'
     final especialItem = _menu?.productos.firstWhereOrNull(
       (item) => item.producto.especial == true,
     );
 
-    // Desayunos
     final desayunos =
         _menu?.productos
             .where(
@@ -86,7 +85,6 @@ class _HomePageState extends State<HomePage> {
             .toList() ??
         [];
 
-    // Otras opciones de almuerzo
     final otrosAlmuerzos =
         _menu?.productos
             .where(
@@ -99,10 +97,6 @@ class _HomePageState extends State<HomePage> {
             .toList() ??
         [];
 
-    final now = DateTime.now();
-    final timeFormat = DateFormat("h:mm a", 'es');
-    final currentTime = timeFormat.format(now);
-
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: RefreshIndicator(
@@ -113,125 +107,8 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header de bienvenida ────────────────────────────────
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                decoration: BoxDecoration(
-                  color: const Color(
-                    0xFF5D4037,
-                  ), // marrón oscuro estilo "bienvenido"
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.14),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: Colors.white.withOpacity(0.25),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Bienvenido de nuevo",
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.85),
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                "Hola, $_userName",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.notifications_outlined,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                          onPressed: () {
-                            // TODO: ir a pantalla de notificaciones
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.greenAccent[400],
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "ABIERTO",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "• Cierra a las 4:00 PM",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.90),
-                              fontSize: 14,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            "UIDE Campus",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // ── Header dinámico con horarios ────────────────────────────────
+              WelcomeHeader(userName: _userName),
 
               // ── Contenido principal ─────────────────────────────────
               Padding(
@@ -241,7 +118,6 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const SizedBox(height: 20),
 
-                    // ESPECIAL DEL DÍA
                     if (_isLoading)
                       const Center(child: CircularProgressIndicator())
                     else if (_errorMessage != null)
@@ -270,7 +146,6 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 28),
 
-                    // DESAYUNO
                     const Padding(
                       padding: EdgeInsets.fromLTRB(4, 0, 4, 12),
                       child: Text(
@@ -305,7 +180,6 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 36),
 
-                    // OTRAS OPCIONES DE ALMUERZO
                     const Padding(
                       padding: EdgeInsets.fromLTRB(4, 0, 4, 16),
                       child: Text(

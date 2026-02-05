@@ -149,7 +149,7 @@ export default function HistorialUsuarioPage({ onLogout }) {
             if (!token) throw new Error('No hay sesión');
 
             const res = await fetch(
-                `https://api-cafeteria.uidehub.tech/api/historial/admin/mostrar/${idUsuario}`,
+                `http://localhost:3002/api/historial/admin/mostrar/${idUsuario}`,
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
