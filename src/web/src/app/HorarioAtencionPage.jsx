@@ -184,7 +184,7 @@ export default function HorarioAtencion() {
         setError('');
 
         try {
-            const res = await fetch('http://localhost:3002/api/horarios/mostrar/admin', {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}api/horarios/mostrar/admin`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -210,8 +210,8 @@ export default function HorarioAtencion() {
         setSaving(true);
 
         const url = editingId
-            ? `http://localhost:3002/api/horarios/${editingId}`
-            : 'http://localhost:3002/api/horarios/crear';
+            ? `${process.env.REACT_APP_API_URL}api/horarios/${editingId}`
+            : `${process.env.REACT_APP_API_URL}api/horarios/crear`;
 
         const method = editingId ? 'PUT' : 'POST';
 
@@ -260,7 +260,7 @@ export default function HorarioAtencion() {
 
     const toggleActive = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3002/api/horarios/${id}/activar`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}api/horarios/${id}/activar`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -276,7 +276,7 @@ export default function HorarioAtencion() {
         if (!window.confirm('¿Seguro que quieres eliminar este horario?')) return;
 
         try {
-            const res = await fetch(`http://localhost:3002/api/horarios/eliminar/${id}`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}api/horarios/eliminar/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });

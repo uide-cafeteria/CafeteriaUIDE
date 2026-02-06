@@ -2,12 +2,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-  static const String baseUrl = "http://localhost:3002";
+  final apiUrl = dotenv.env['API_URL'];
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final url = Uri.parse("$baseUrl/api/usuario/auth/cliente");
+    final url = Uri.parse("$apiUrl/api/usuario/auth/cliente");
 
     try {
       final response = await http.post(

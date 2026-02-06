@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Plus, DollarSign, Loader2 } from 'lucide-react';
 
+
 export default function Cafeteria({ onLogout }) {
+  const apiUrl = process.env.URL_API;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('productos');
   const [products, setProducts] = useState([]);
@@ -182,7 +184,7 @@ export default function Cafeteria({ onLogout }) {
         try {
           setLoadingProductos(true);
           const token = localStorage.getItem('authToken');
-          const res = await fetch('http://localhost:3002/api/producto/mostrar', {
+          const res = await fetch(`${process.env.REACT_APP_API_URL}api/producto/mostrar`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (!res.ok) throw new Error();
@@ -211,7 +213,7 @@ export default function Cafeteria({ onLogout }) {
   const handleLogout = async () => {
     const token = localStorage.getItem('authToken');
     try {
-      await fetch('http://localhost:3002/api/usuario/logout/admin', {
+      await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -265,7 +267,7 @@ export default function Cafeteria({ onLogout }) {
     fd.append('activo', !product.activo);
     fd.append('imagen', product.imagen);
     try {
-      const res = await fetch(`http://localhost:3002/api/producto/actualizar/${product.idProducto}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}api/producto/actualizar/${product.idProducto}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: fd
@@ -313,8 +315,8 @@ export default function Cafeteria({ onLogout }) {
     else if (formData.imageUrl?.trim()) fd.append('imagen', formData.imageUrl.trim());
     try {
       const url = editingItem
-        ? `http://localhost:3002/api/producto/actualizar/${editingItem.idProducto}`
-        : 'http://localhost:3002/api/producto/crear';
+        ? `${process.env.REACT_APP_API_URL}api/producto/actualizar/${editingItem.idProducto}`
+        : `${process.env.REACT_APP_API_URL}api/producto/crear`;
       const method = editingItem ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,

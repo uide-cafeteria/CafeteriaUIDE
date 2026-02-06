@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'config/app_theme.dart';
@@ -16,6 +17,7 @@ void main() async {
   await initializeDateFormatting('es', null);
   //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   //await FirebaseMessaging.instance.requestPermission();
+  await dotenv.load(fileName: ".env");
   runApp(const CafeteriaApp());
 }
 

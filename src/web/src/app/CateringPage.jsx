@@ -180,7 +180,7 @@ export default function CateringAdmin() {
             }
 
             try {
-                const res = await fetch('http://localhost:3002/api/catering/admin/todas', {
+                const res = await fetch(`${process.env.REACT_APP_API_URL}api/catering/admin/todas`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -209,7 +209,7 @@ export default function CateringAdmin() {
         const token = localStorage.getItem('authToken');
 
         try {
-            const res = await fetch(`http://localhost:3002/api/catering/admin/${idSolicitud}/responder`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}api/catering/admin/${idSolicitud}/responder`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ export default function CateringAdmin() {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch('http://localhost:3002/api/usuario/logout/admin', {
+            await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
             });

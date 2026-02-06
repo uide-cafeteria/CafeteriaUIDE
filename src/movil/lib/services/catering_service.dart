@@ -2,9 +2,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/catering.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CateringService {
-  static const String baseUrl = "http://localhost:3002";
+  static final apiUrl = dotenv.env['API_URL'];
 
   // ────────────────────────────────────────────────
   // 1. Crear / enviar solicitud de catering
@@ -19,7 +20,7 @@ class CateringService {
     int? cantidadPersonas,
     String? descripcion,
   }) async {
-    final url = Uri.parse("$baseUrl/api/catering/crear");
+    final url = Uri.parse("$apiUrl/api/catering/crear");
 
     try {
       final response = await http.post(
@@ -63,7 +64,7 @@ class CateringService {
   // 2. Obtener MIS solicitudes (requiere estar logueado)
   // ────────────────────────────────────────────────
   static Future<Map<String, dynamic>> getMisSolicitudes(String token) async {
-    final url = Uri.parse("$baseUrl/api/catering/mis-solicitudes");
+    final url = Uri.parse("$apiUrl/api/catering/mis-solicitudes");
 
     try {
       final response = await http.get(
@@ -101,7 +102,7 @@ class CateringService {
     String token,
     int idSolicitud,
   ) async {
-    final url = Uri.parse("$baseUrl/api/catering/$idSolicitud/cancelar");
+    final url = Uri.parse("$apiUrl/api/catering/$idSolicitud/cancelar");
 
     try {
       final response = await http.put(

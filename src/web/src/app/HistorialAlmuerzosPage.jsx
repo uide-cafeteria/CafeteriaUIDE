@@ -199,7 +199,7 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
       const token = localStorage.getItem('authToken');
       if (!token) throw new Error('No hay sesión');
 
-      const res = await fetch('http://localhost:3002/api/historial/admin/global', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}api/historial/admin/global`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

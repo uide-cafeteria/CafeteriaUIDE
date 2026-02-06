@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/producto.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ProductoService {
-  static const String _baseUrl = "http://localhost:3002";
+  static final apiUrl = dotenv.env['API_URL'];
 
-  Future<List<Producto>> obtenerProductos() async {
-    final url = Uri.parse("$_baseUrl/api/producto/mostrar");
+  static Future<List<Producto>> obtenerProductos() async {
+    final url = Uri.parse("$apiUrl/api/producto/mostrar");
 
     try {
       final response = await http

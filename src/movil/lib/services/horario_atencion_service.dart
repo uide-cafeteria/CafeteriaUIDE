@@ -1,14 +1,15 @@
 // lib/services/horario_atencion_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HorarioAtencionService {
-  static const String baseUrl = "http://localhost:3002";
+  static final apiUrl = dotenv.env['API_URL'];
 
   /// Obtiene los horarios de atención visibles para el público (clientes / app)
   /// No requiere autenticación
-  Future<Map<String, dynamic>> getHorariosPublicos() async {
-    final url = Uri.parse("$baseUrl/api/horarios/mostrar");
+  static Future<Map<String, dynamic>> getHorariosPublicos() async {
+    final url = Uri.parse("$apiUrl/api/horarios/mostrar");
 
     try {
       final response = await http.get(url);

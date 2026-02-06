@@ -306,7 +306,7 @@ export default function PromocionPage({ onLogout }) {
                 try {
                     setLoading(true);
                     const token = localStorage.getItem('authToken');
-                    const res = await fetch('http://localhost:3002/api/promocion/mostrar/admin', {
+                    const res = await fetch(`${process.env.REACT_APP_API_URL}api/promocion/mostrar/admin`, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
@@ -332,7 +332,7 @@ export default function PromocionPage({ onLogout }) {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch('http://localhost:3002/api/usuario/logout/admin', {
+            await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -378,7 +378,7 @@ export default function PromocionPage({ onLogout }) {
         setTogglingPromo(promo.idPromocion);
         const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`http://localhost:3002/api/promocion/estado/${promo.idPromocion}`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}api/promocion/estado/${promo.idPromocion}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -438,10 +438,10 @@ export default function PromocionPage({ onLogout }) {
         try {
             let url, method;
             if (editingPromo) {
-                url = `http://localhost:3002/api/promocion/actualizar/${editingPromo.idPromocion}`;
+                url = `${process.env.REACT_APP_API_URL}api/promocion/actualizar/${editingPromo.idPromocion}`;
                 method = 'PUT';
             } else {
-                url = 'http://localhost:3002/api/promocion/crear';
+                url = `${process.env.REACT_APP_API_URL}api/promocion/crear`;
                 method = 'POST';
             }
 

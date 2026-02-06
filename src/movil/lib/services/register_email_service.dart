@@ -2,10 +2,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class RegisterEmailService {
-  static const String baseUrl =
-      "http://localhost:3002"; // ← cámbialo a tu URL real en producción
+  final apiUrl = dotenv.env['API_URL'];
 
   /// Registra un nuevo usuario con correo
   /// Campos obligatorios: username, correo, contraseña
@@ -16,7 +16,7 @@ class RegisterEmailService {
     required String password,
     String? telefono,
   }) async {
-    final url = Uri.parse("$baseUrl/api/usuario/registro/correo");
+    final url = Uri.parse("$apiUrl/api/usuario/registro/correo");
 
     try {
       final response = await http.post(

@@ -16,7 +16,7 @@ export function LoginForm({ onLogin }) {
     setError('')
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3002/api/usuario/auth/admin', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}api/usuario/auth/admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email, contrasenia: password })

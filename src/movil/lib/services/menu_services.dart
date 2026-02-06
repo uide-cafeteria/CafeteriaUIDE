@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/menu_del_dia.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MenuService {
-  static const String baseUrl = "http://localhost:3002";
+  static final apiUrl = dotenv.env['API_URL'];
 
   static Future<Map<String, dynamic>> obtenerMenuDelDia() async {
-    final url = Uri.parse("$baseUrl/api/menu/mostrar");
+    final url = Uri.parse("$apiUrl/api/menu/mostrar");
 
     try {
       final response = await http.get(

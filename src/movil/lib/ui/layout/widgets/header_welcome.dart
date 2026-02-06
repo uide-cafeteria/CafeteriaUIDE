@@ -29,7 +29,7 @@ class _WelcomeHeaderState extends State<WelcomeHeader> {
 
   Future<void> _loadHorarios() async {
     final service = HorarioAtencionService();
-    final result = await service.getHorariosPublicos();
+    final result = await HorarioAtencionService.getHorariosPublicos();
 
     if (!mounted) return;
 

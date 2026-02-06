@@ -2,9 +2,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HistorialService {
-  static const String baseUrl = "http://localhost:3002";
+  static final apiUrl = dotenv.env['API_URL'];
 
   static Future<Map<String, dynamic>> obtenerMiHistorial() async {
     final token = await SecureStorage.getToken();
@@ -17,7 +18,7 @@ class HistorialService {
       };
     }
 
-    final url = Uri.parse("$baseUrl/api/historial/usuario/mostrar");
+    final url = Uri.parse("$apiUrl/api/historial/usuario/mostrar");
 
     try {
       final response = await http.get(
