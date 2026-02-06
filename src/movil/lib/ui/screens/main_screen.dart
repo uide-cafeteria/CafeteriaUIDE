@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../pages/home_page.dart';
 import '../pages/promotions_page.dart';
+import '../pages/catering_page.dart';
 import '../pages/profile_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _MainScreenState extends State<MainScreen> {
     HomePage(),
     PromotionsPage(),
     ProfilePage(),
+    CateringPage(),
   ];
 
   @override
@@ -138,6 +140,23 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   label: 'Perfil',
+                ),
+                BottomNavigationBarItem(
+                  icon: SizedBox(
+                    height: 40,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Icon(Icons.food_bank_rounded),
+                    ),
+                  ),
+                  activeIcon: SizedBox(
+                    height: 40,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Icon(Icons.food_bank_rounded),
+                    ),
+                  ),
+                  label: 'Catering',
                 ),
               ],
             ),

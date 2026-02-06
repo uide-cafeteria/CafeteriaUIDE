@@ -5,6 +5,7 @@ import menuDelDiaRoutes from './menuDelDiaRoutes.js';
 import historialAlmuerzoRoutes from './historialAlmuerzoRoutes.js';
 import horarioAtencionRoutes from './horarioAtencionRoutes.js'
 import promocionRoutes from './promocionRoutes.js';
+import cateringRoutes from './cateringRoutes.js';
 
 const router = express.Router();
 
@@ -14,5 +15,6 @@ router.use('/menu', menuDelDiaRoutes);
 router.use('/horarios', horarioAtencionRoutes);
 router.use('/historial', historialAlmuerzoRoutes);
 router.use('/promocion', promocionRoutes);
+router.use('/catering', cateringRoutes);
 
 export default router;

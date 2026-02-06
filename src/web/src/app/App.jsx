@@ -9,6 +9,7 @@ import HorarioAtencion from './HorarioAtencionPage'
 import MenuDiarioPage from './MenuDiarioPage'
 import ScanConfirm from './ScanConfirmPage'
 import PromocionPage from './PromocionPage'
+import CateringAdmin from './CateringPage'
 import HistorialUsuario from './HistorialUsuarioPage'
 import '../styles/app.css'
 
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/cafeteria/menu/:idMenu/productos" element={<MenuProductos />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/promociones" element={<PromocionPage />} />
+          <Route path="/catering" element={<CateringAdmin />} />
           <Route path="/horario-atencion" element={<HorarioAtencion />} />
           <Route path="/menu-diario" element={<MenuDiarioPage />} />
           <Route path="/historial-almuerzos" element={<HistorialAlmuerzos />} />
