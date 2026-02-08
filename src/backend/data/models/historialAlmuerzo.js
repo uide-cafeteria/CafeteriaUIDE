@@ -20,10 +20,6 @@ const HistorialAlmuerzo = sequelize.define(
             type: DataTypes.DATEONLY,
             allowNull: false,
         },
-        idProducto: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
         registrado_por: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -45,7 +41,7 @@ const HistorialAlmuerzo = sequelize.define(
             { fields: ["idUsuario"] },
             { fields: ["idUsuario", "es_gratis"] },
             { fields: ["fecha"] },
-            { unique: true, fields: ["idUsuario", "fecha"] },
+            //{ unique: true, fields: ["idUsuario", "fecha"] },
         ],
     }
 );
@@ -59,11 +55,6 @@ HistorialAlmuerzo.belongsTo(Usuario, {
 HistorialAlmuerzo.belongsTo(Usuario, {
     foreignKey: "registrado_por",
     as: "registradoPor",        // ← cajero o admin que escaneó
-});
-
-HistorialAlmuerzo.belongsTo(Producto, {
-    foreignKey: "idProducto",
-    as: "producto",
 });
 
 // Relaciones inversas (muy útiles)

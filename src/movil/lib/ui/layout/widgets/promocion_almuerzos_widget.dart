@@ -16,18 +16,24 @@ class PromocionAlmuerzosWidget extends StatefulWidget {
 
   @override
   State<PromocionAlmuerzosWidget> createState() =>
-      _PromocionAlmuerzosWidgetState();
+      PromocionAlmuerzosWidgetState();
 }
 
-class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
+// Hacemos el estado público para poder usar GlobalKey
+class PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _flipController;
   late Animation<double> _flipAnimation;
   bool _showFront = true;
 
+  // Contador visual que controlamos manualmente para reinicios
+  late int _sellosVisuales;
+
   @override
   void initState() {
     super.initState();
+    _sellosVisuales = widget.sellosCompletos.clamp(0, 10);
+
     _flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -53,10 +59,18 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
     setState(() => _showFront = !_showFront);
   }
 
+  /// Método que llamas después de registrar un almuerzo con éxito
+  /// (desde ScanConfirmPage o donde hagas el POST)
+  void procesarRegistroExitoso(int nuevosSellos) {
+    setState(() {
+      _sellosVisuales = nuevosSellos.clamp(0, 10);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     const int totalSellos = 10;
-    final double progress = widget.sellosCompletos / totalSellos;
+    final double progress = _sellosVisuales / totalSellos;
 
     return GestureDetector(
       onTap: _toggleFlip,
@@ -77,13 +91,9 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: _flipAnimation.value > 0.5
-                        ? AppTheme.accentColor.withOpacity(
-                            0.6 * _flipAnimation.value,
-                          )
-                        : Colors.black.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 20,
-                    spreadRadius: _flipAnimation.value > 0.5 ? 8 : 0,
+                    spreadRadius: 0,
                     offset: const Offset(0, 8),
                   ),
                 ],
@@ -123,7 +133,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
         ),
         const SizedBox(height: 28),
 
-        // Grid de sellos (igual que antes)
+        // Grid de sellos (sin cambios, solo pintamos según _sellosVisuales)
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -135,7 +145,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
           ),
           itemCount: totalSellos,
           itemBuilder: (context, index) {
-            final bool completado = index < widget.sellosCompletos;
+            final bool completado = index < _sellosVisuales;
 
             if (index == totalSellos - 1) {
               return Container(
@@ -185,7 +195,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
             Text(
-              "${widget.sellosCompletos} de $totalSellos sellos",
+              "$_sellosVisuales de $totalSellos sellos",
               style: TextStyle(
                 fontSize: 14,
                 color: AppTheme.accentColor,
@@ -211,7 +221,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
   Widget _buildBack() {
     return Transform(
       alignment: Alignment.center,
-      transform: Matrix4.rotationY(math.pi), // corrige el espejo
+      transform: Matrix4.rotationY(math.pi),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -246,7 +256,7 @@ class _PromocionAlmuerzosWidgetState extends State<PromocionAlmuerzosWidget>
                   )
                 : QrImageView(
                     data:
-                        "http://172.16.76.0:3000/scan-confirm?loyalty_token=${widget.loyaltyToken}",
+                        "http://192.168.101.61:3000/scan-confirm?loyalty_token=${widget.loyaltyToken}",
                     version: QrVersions.auto,
                     size: 180,
                     gapless: false,

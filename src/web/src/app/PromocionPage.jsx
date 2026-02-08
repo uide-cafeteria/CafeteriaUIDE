@@ -1,7 +1,7 @@
 // src/pages/PromocionPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Plus, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Edit, Plus, Loader2, Image as ImageIcon } from 'lucide-react';
 
 export default function PromocionPage({ onLogout }) {
     const navigate = useNavigate();
@@ -27,7 +27,6 @@ export default function PromocionPage({ onLogout }) {
     const [submitSuccess, setSubmitSuccess] = useState('');
     const [togglingPromo, setTogglingPromo] = useState(null);
 
-    // Todos los estilos inline necesarios (iguales a Cafeteria)
     const globalStyles = (
         <>
             <style>{`
@@ -220,10 +219,6 @@ export default function PromocionPage({ onLogout }) {
           border-radius: 999px;
           font-size: 0.875rem;
         }
-      `}</style>
-
-            {/* Estilos del modal */}
-            <style>{`
         .modal-overlay {
           position: fixed;
           inset: 0;
@@ -299,14 +294,13 @@ export default function PromocionPage({ onLogout }) {
         </>
     );
 
-    // Cargar promociones (solo admin)
     useEffect(() => {
         if (activeTab === 'promociones') {
             const fetchPromociones = async () => {
                 try {
                     setLoading(true);
                     const token = localStorage.getItem('authToken');
-                    const res = await fetch(`${process.env.REACT_APP_API_URL}api/promocion/mostrar/admin`, {
+                    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/promocion/mostrar/admin`, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
@@ -332,7 +326,7 @@ export default function PromocionPage({ onLogout }) {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
+            await fetch(`${process.env.REACT_APP_API_URL}/api/usuario/logout/admin`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -378,7 +372,7 @@ export default function PromocionPage({ onLogout }) {
         setTogglingPromo(promo.idPromocion);
         const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}api/promocion/estado/${promo.idPromocion}`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/promocion/estado/${promo.idPromocion}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -409,7 +403,7 @@ export default function PromocionPage({ onLogout }) {
                 ...prev,
                 imageFile: file,
                 imagePreview: URL.createObjectURL(file),
-                imagen: '' // Limpiamos la URL anterior si se sube archivo nuevo
+                imagen: ''
             }));
         }
     };
@@ -438,10 +432,10 @@ export default function PromocionPage({ onLogout }) {
         try {
             let url, method;
             if (editingPromo) {
-                url = `${process.env.REACT_APP_API_URL}api/promocion/actualizar/${editingPromo.idPromocion}`;
+                url = `${process.env.REACT_APP_API_URL}/api/promocion/actualizar/${editingPromo.idPromocion}`;
                 method = 'PUT';
             } else {
-                url = `${process.env.REACT_APP_API_URL}api/promocion/crear`;
+                url = `${process.env.REACT_APP_API_URL}/api/promocion/crear`;
                 method = 'POST';
             }
 
@@ -474,19 +468,19 @@ export default function PromocionPage({ onLogout }) {
         }
     };
 
-    // Redirigir a otras páginas cuando cambie la pestaña
     useEffect(() => {
         if (activeTab === 'cafeteria') navigate('/cafeteria');
         if (activeTab === 'menu') navigate('/menu-diario');
         if (activeTab === 'historial') navigate('/historial-almuerzos');
         if (activeTab === 'promociones') navigate('/promociones');
+        if (activeTab === 'catering') navigate('/catering');
+        if (activeTab === 'horario-atencion') navigate('/horario-atencion');
     }, [activeTab, navigate]);
 
     return (
         <div className="cafeteria-container">
             {globalStyles}
 
-            {/* Header */}
             <div className="cafeteria-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
@@ -499,23 +493,45 @@ export default function PromocionPage({ onLogout }) {
                 </div>
             </div>
 
-            {/* Navbar */}
             <div className="navbar-horizontal">
-                <button className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`} onClick={() => setActiveTab('productos')}>
+                <button
+                    className={`tab-button ${activeTab === 'cafeteria' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('cafeteria')}
+                >
                     Lista de Productos
                 </button>
-                <button className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>
+                <button
+                    className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('menu')}
+                >
                     Menú Diario
                 </button>
-                <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+                <button
+                    className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('historial')}
+                >
                     Historial de Almuerzos
                 </button>
-                <button className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`} onClick={() => setActiveTab('promociones')}>
+                <button
+                    className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('promociones')}
+                >
                     Promociones
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'catering' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('catering')}
+                >
+                    Catering
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'horario-atencion' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('horario-atencion')}
+                >
+                    Horarios de atención
                 </button>
             </div>
 
-            {/* Contenido principal */}
             {activeTab === 'promociones' && (
                 <>
                     <div className="actions-bar">
@@ -607,7 +623,6 @@ export default function PromocionPage({ onLogout }) {
                 </>
             )}
 
-            {/* MODAL */}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>

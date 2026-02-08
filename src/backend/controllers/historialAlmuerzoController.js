@@ -1,5 +1,6 @@
 import HistorialAlmuerzo from "../data/models/historialAlmuerzo.js";
 import Usuario from "../data/models/usuario.js";
+import { Op } from 'sequelize';
 
 const historialAlmuerzoController = {
 
@@ -144,7 +145,6 @@ const historialAlmuerzoController = {
         }
     },
 
-    // Registrar almuerzo cargando loyalty_token del usuario
     registrarAlmuerzo: async (req, res) => {
         try {
             if (req.usuario.rol !== 'administrador') {
@@ -153,7 +153,6 @@ const historialAlmuerzoController = {
 
             const { loyalty_token } = req.body;
 
-            // 2. Validar que se envíe el token
             if (!loyalty_token || loyalty_token.trim() === '') {
                 return res.status(400).json({
                     status: false,
@@ -161,7 +160,6 @@ const historialAlmuerzoController = {
                 });
             }
 
-            // 3. Buscar al estudiante por su QR permanente
             const estudiante = await Usuario.findOne({
                 where: {
                     loyalty_token: loyalty_token.trim(),
@@ -177,46 +175,62 @@ const historialAlmuerzoController = {
                 });
             }
 
-            const hoy = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const hoy = new Date().toISOString().split('T')[0];
 
-            // 4. Verificar si ya consumió hoy
-            const yaConsumio = await HistorialAlmuerzo.findOne({
+            // 1. Encontrar el último almuerzo GRATIS del estudiante
+            const ultimoGratis = await HistorialAlmuerzo.findOne({
                 where: {
                     idUsuario: estudiante.idUsuario,
-                    fecha: sequelize.literal('CURRENT_DATE')
-                }
+                    es_gratis: true
+                },
+                order: [['fecha_registro', 'DESC']], // el más reciente
+                attributes: ['fecha_registro']
             });
 
-            if (yaConsumio) {
-                return res.status(400).json({
-                    status: false,
-                    message: 'Este estudiante ya consumió su almuerzo hoy',
-                    data: { estudiante: estudiante.nombre }
-                });
+            // 2. Contar SOLO los almuerzos PAGADOS después del último gratis (o todos si nunca ha tenido gratis)
+            const wherePagados = {
+                idUsuario: estudiante.idUsuario,
+                es_gratis: false
+            };
+
+            if (ultimoGratis) {
+                wherePagados.fecha_registro = {
+                    [Op.gt]: ultimoGratis.fecha_registro  // > fecha del último gratis
+                };
             }
 
-            // 5. Contar cuántos almuerzos pagados lleva (sin contar los gratis)
-            const pagadosCount = await HistorialAlmuerzo.count({
-                where: {
-                    idUsuario: estudiante.idUsuario,
-                    es_gratis: false
-                }
+            const pagadosDesdeUltimoGratis = await HistorialAlmuerzo.count({
+                where: wherePagados
             });
 
-            const esGratisHoy = (pagadosCount + 1) % 10 === 0;
+            // 3. El siguiente almuerzo será gratis si ya lleva 9 pagados desde el último gratis
+            // (porque +1 = 10)
+            const esGratisHoy = (pagadosDesdeUltimoGratis + 1) % 10 === 0;
 
-            // 6. Registrar el almuerzo
+            // 4. Registrar el almuerzo
             const nuevoAlmuerzo = await HistorialAlmuerzo.create({
                 idUsuario: estudiante.idUsuario,
                 registrado_por: req.usuario.idUsuario,
                 es_gratis: esGratisHoy,
+                fecha: hoy,
             });
 
-            // 7. Respuesta exitosa
+            // 5. Calcular progreso para la respuesta
+            const pagadosTotales = await HistorialAlmuerzo.count({
+                where: { idUsuario: estudiante.idUsuario, es_gratis: false }
+            });
+
+            const gratisTotales = await HistorialAlmuerzo.count({
+                where: { idUsuario: estudiante.idUsuario, es_gratis: true }
+            });
+
+            // Para mostrar "faltan X para el próximo gratis"
+            const faltanParaProximo = esGratisHoy ? 10 : (10 - ((pagadosDesdeUltimoGratis + 1) % 10));
+
             res.status(201).json({
                 status: true,
                 message: esGratisHoy
-                    ? '¡ALMUERZO GRATIS REGISTRADO! Completó 10 almuerzos'
+                    ? '¡ALMUERZO GRATIS REGISTRADO! Completó 10 almuerzos → contador reiniciado'
                     : 'Almuerzo registrado correctamente',
                 data: {
                     estudiante: {
@@ -224,24 +238,25 @@ const historialAlmuerzoController = {
                         nombre: estudiante.nombre
                     },
                     almuerzo: {
-                        fecha: sequelize.literal('CURRENT_DATE'),
-                        es_gratis: esGratisHoy,
-                        registrado_por: req.usuario.nombre
+                        fecha: hoy,
+                        es_gratis: esGratisHoy
                     },
                     progreso: {
-                        almuerzos_pagados: pagadosCount + 1,
-                        gratis_obtenidos: Math.floor((pagadosCount + 1) / 10),
-                        siguiente_gratis_en: esGratisHoy ? 10 : (10 - ((pagadosCount + 1) % 10))
+                        pagados_desde_ultimo_gratis: pagadosDesdeUltimoGratis + 1,
+                        faltan_para_proximo_gratis: faltanParaProximo,
+                        pagados_totales: pagadosTotales,
+                        gratis_totales: gratisTotales
                     }
                 }
             });
 
         } catch (error) {
+            console.error("Error completo en registrarAlmuerzo:", error);
             res.status(500).json({
                 status: false,
                 message: 'Error al registrar almuerzo',
-                error
-            })
+                error: error.message || 'Error interno del servidor'
+            });
         }
     },
 

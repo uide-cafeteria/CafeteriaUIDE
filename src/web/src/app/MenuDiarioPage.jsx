@@ -23,7 +23,6 @@ export default function MenuDiarioPage({ onLogout }) {
 
     const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
-    // Estilos inline (exactamente iguales a Cafeteria)
     const globalStyles = (
         <style>{`
       .cafeteria-container { padding: 20px; min-height: 100vh; background: #f8fafc; }
@@ -165,7 +164,7 @@ export default function MenuDiarioPage({ onLogout }) {
             try {
                 setLoadingMenus(true);
                 const token = localStorage.getItem('authToken');
-                const res = await fetch(`${process.env.REACT_APP_API_URL}api/menu/mostrar/admin`, {
+                const res = await fetch(`${process.env.REACT_APP_API_URL}/api/menu/mostrar/admin`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error();
@@ -183,7 +182,7 @@ export default function MenuDiarioPage({ onLogout }) {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
+            await fetch(`${process.env.REACT_APP_API_URL}/api/usuario/logout/admin`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -217,7 +216,7 @@ export default function MenuDiarioPage({ onLogout }) {
         setTogglingMenu(menu.idMenu);
         const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}api/menu/${menu.idMenu}/activar`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/menu/${menu.idMenu}/activar`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -253,10 +252,10 @@ export default function MenuDiarioPage({ onLogout }) {
         try {
             let url, method;
             if (editingMenu) {
-                url = `${process.env.REACT_APP_API_URL}api/menu/actualizar/${editingMenu.idMenu}`;
+                url = `${process.env.REACT_APP_API_URL}/api/menu/actualizar/${editingMenu.idMenu}`;
                 method = 'PUT';
             } else {
-                url = `${process.env.REACT_APP_API_URL}api/menu/crear`;
+                url = `${process.env.REACT_APP_API_URL}/api/menu/crear`;
                 method = 'POST';
             }
             const res = await fetch(url, {
@@ -283,13 +282,16 @@ export default function MenuDiarioPage({ onLogout }) {
             setSubmitting(false);
         }
     };
-    // Redirigir a otras páginas cuando cambie la pestaña
+
     useEffect(() => {
         if (activeTab === 'cafeteria') navigate('/cafeteria');
         if (activeTab === 'menu') navigate('/menu-diario');
         if (activeTab === 'historial') navigate('/historial-almuerzos');
         if (activeTab === 'promociones') navigate('/promociones');
+        if (activeTab === 'catering') navigate('/catering');
+        if (activeTab === 'horario-atencion') navigate('/horario-atencion');
     }, [activeTab, navigate]);
+
     return (
         <div className="cafeteria-container">
             {globalStyles}
@@ -307,20 +309,45 @@ export default function MenuDiarioPage({ onLogout }) {
             </div>
 
             <div className="navbar-horizontal">
-                <button className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`} onClick={() => setActiveTab('cafeteria')}>
+                <button
+                    className={`tab-button ${activeTab === 'cafeteria' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('cafeteria')}
+                >
                     Lista de Productos
                 </button>
-                <button className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>
+                <button
+                    className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('menu')}
+                >
                     Menú Diario
                 </button>
-                <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+                <button
+                    className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('historial')}
+                >
                     Historial de Almuerzos
                 </button>
-                <button className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`} onClick={() => setActiveTab('promociones')}>
+                <button
+                    className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('promociones')}
+                >
                     Promociones
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'catering' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('catering')}
+                >
+                    Catering
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'horario-atencion' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('horario-atencion')}
+                >
+                    Horarios de atención
                 </button>
             </div>
 
+            {/* Resto del componente sin cambios */}
             <div className="actions-bar">
                 <h2 className="actions-title">Menú Diario</h2>
                 <button onClick={() => openModal()} className="btn-add">

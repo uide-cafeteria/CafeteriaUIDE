@@ -149,7 +149,7 @@ export default function HistorialUsuarioPage({ onLogout }) {
             if (!token) throw new Error('No hay sesión');
 
             const res = await fetch(
-                `${process.env.REACT_APP_API_URL}api/historial/admin/mostrar/${idUsuario}`,
+                `${process.env.REACT_APP_API_URL}/api/historial/admin/mostrar/${idUsuario}`,
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }

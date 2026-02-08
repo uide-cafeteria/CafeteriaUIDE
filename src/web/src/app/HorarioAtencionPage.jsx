@@ -1,14 +1,16 @@
-// src/pages/HorariosAtencion.jsx   (o donde prefieras guardarla)
+// src/pages/HorarioAtencion.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Edit, Loader2, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Edit, Loader2 } from 'lucide-react';
 
 export default function HorarioAtencion() {
     const navigate = useNavigate();
 
+    const [activeTab, setActiveTab] = useState('horario-atencion');
     const [horarios, setHorarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
     const [formOpen, setFormOpen] = useState(false);
     const [formData, setFormData] = useState({
         ubicacion: 'cafeteria',
@@ -21,154 +23,158 @@ export default function HorarioAtencion() {
 
     const token = localStorage.getItem('authToken');
 
-    // ────────────────────────────────────────────────
-    // Estilos copiados y ligeramente adaptados de tu página de referencia
-    // ────────────────────────────────────────────────
     const globalStyles = (
         <style>{`
-      .cafeteria-container { 
-        padding: 20px; 
-        min-height: 100vh; 
-        background: #f8fafc; 
-      }
-      .cafeteria-header {
-        background: linear-gradient(135deg, #1e293b, #0f172a);
-        padding: 32px 40px;
-        border-radius: 20px;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        color: white;
-      }
-      .cafeteria-title { 
-        font-size: 36px; 
-        font-weight: 800; 
-        margin: 0; 
-      }
-      .cafeteria-subtitle { 
-        font-size: 18px; 
-        opacity: 0.9; 
-        margin-top: 8px; 
-      }
-      .btn-logout {
-        background: #dc2626 !important;
-        color: white !important;
-        padding: 12px 24px;
-        border-radius: 14px;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 15px;
-        transition: all 0.2s ease;
-      }
-      .btn-logout:hover { 
-        background: #b91c1c !important; 
-        transform: scale(1.05); 
-      }
-      .actions-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 18px 25px;
-        margin: 18px 0;
-        background: #ffffff;
-        border-radius: 14px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      }
-      .btn-back {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        background: #e2e8f0;
-        color: #475569;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.3s;
-      }
-      .btn-back:hover { 
-        background: #cbd5e1; 
-        transform: translateY(-2px); 
-      }
-      .btn-add {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.3s;
-      }
-      .btn-add:hover { 
-        background: #2563eb; 
-        transform: translateY(-2px); 
-      }
-      .btn-edit {
-        background: #f59e0b;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-      }
-      .btn-delete {
-        background: #ef4444;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-      }
-      .table-bordered {
-        border-collapse: collapse;
-        width: 100%;
-        background: #ffffff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      .table-bordered th {
-        background: #f1f5f9;
-        padding: 14px;
-        border-bottom: 2px solid #e2e8f0;
-        font-weight: 600;
-        color: #334155;
-        text-align: left;
-      }
-      .table-bordered td {
-        padding: 16px 12px;
-        border-bottom: 1px solid #e5e7eb;
-        vertical-align: middle;
-      }
-      tr:hover { background: #f9fafb; }
-      .badge {
-        padding: 6px 12px;
-        border-radius: 9999px;
-        font-size: 0.875rem;
-        font-weight: 600;
-      }
-      .badge-active { background: #dcfce7; color: #166534; }
-      .badge-inactive { background: #fee2e2; color: #991b1b; }
-      .form-container {
-        background: white;
-        padding: 24px;
-        border-radius: 12px;
-        margin-bottom: 32px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      .empty-state {
-        background: white;
-        border-radius: 20px;
-        padding: 60px 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        text-align: center;
-      }
-    `}</style>
+            .cafeteria-container { 
+                padding: 20px; 
+                min-height: 100vh; 
+                background: #f8fafc; 
+            }
+            .cafeteria-header {
+                background: linear-gradient(135deg, #1e293b, #0f172a);
+                padding: 32px 40px;
+                border-radius: 20px;
+                margin-bottom: 24px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                color: white;
+            }
+            .cafeteria-title { 
+                font-size: 36px; 
+                font-weight: 800; 
+                margin: 0; 
+            }
+            .cafeteria-subtitle { 
+                font-size: 18px; 
+                opacity: 0.9; 
+                margin-top: 8px; 
+            }
+            .btn-logout {
+                background: #dc2626 !important;
+                color: white !important;
+                padding: 12px 24px;
+                border-radius: 14px;
+                border: none;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 15px;
+                transition: all 0.2s ease;
+            }
+            .btn-logout:hover { 
+                background: #b91c1c !important; 
+                transform: scale(1.05); 
+            }
+            .navbar-horizontal {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin: 30px 0;
+                flex-wrap: wrap;
+            }
+            .tab-button {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 32px;
+                background: #e2e8f0;
+                color: #475569;
+                border: none;
+                border-radius: 18px;
+                font-size: 17px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+                min-width: 220px;
+            }
+            .tab-button:hover {
+                background: #cbd5e1;
+                transform: translateY(-4px);
+                box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+            }
+            .tab-button.active {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: white;
+                box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+                transform: translateY(-2px);
+            }
+            .btn-add {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 20px;
+                background: #3b82f6;
+                color: white;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: 0.3s;
+            }
+            .btn-add:hover { 
+                background: #2563eb; 
+                transform: translateY(-2px); 
+            }
+            .btn-edit {
+                background: #f59e0b;
+                color: white;
+                border: none;
+                padding: 8px 14px;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+            .btn-delete {
+                background: #ef4444;
+                color: white;
+                border: none;
+                padding: 8px 14px;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+            .table-bordered {
+                border-collapse: collapse;
+                width: 100%;
+                background: #ffffff;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .table-bordered th {
+                background: #f1f5f9;
+                padding: 14px;
+                border-bottom: 2px solid #e2e8f0;
+                font-weight: 600;
+                color: #334155;
+                text-align: left;
+            }
+            .table-bordered td {
+                padding: 16px 12px;
+                border-bottom: 1px solid #e5e7eb;
+                vertical-align: middle;
+            }
+            tr:hover { background: #f9fafb; }
+            .badge {
+                padding: 6px 12px;
+                border-radius: 9999px;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+            .badge-active { background: #dcfce7; color: #166534; }
+            .badge-inactive { background: #fee2e2; color: #991b1b; }
+            .form-container {
+                background: white;
+                padding: 24px;
+                border-radius: 12px;
+                margin-bottom: 32px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .empty-state {
+                background: white;
+                border-radius: 20px;
+                padding: 60px 30px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+        `}</style>
     );
 
     useEffect(() => {
@@ -184,14 +190,11 @@ export default function HorarioAtencion() {
         setError('');
 
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}api/horarios/mostrar/admin`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/horarios/mostrar/admin`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (!res.ok) {
-                throw new Error('No se pudieron cargar los horarios');
-            }
-
+            if (!res.ok) throw new Error('No se pudieron cargar los horarios');
             const data = await res.json();
             setHorarios(data.horarios || []);
         } catch (err) {
@@ -210,8 +213,8 @@ export default function HorarioAtencion() {
         setSaving(true);
 
         const url = editingId
-            ? `${process.env.REACT_APP_API_URL}api/horarios/${editingId}`
-            : `${process.env.REACT_APP_API_URL}api/horarios/crear`;
+            ? `${process.env.REACT_APP_API_URL}/api/horarios/${editingId}`
+            : `${process.env.REACT_APP_API_URL}/api/horarios/crear`;
 
         const method = editingId ? 'PUT' : 'POST';
 
@@ -260,7 +263,7 @@ export default function HorarioAtencion() {
 
     const toggleActive = async (id) => {
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}api/horarios/${id}/activar`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/horarios/${id}/activar`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -276,7 +279,7 @@ export default function HorarioAtencion() {
         if (!window.confirm('¿Seguro que quieres eliminar este horario?')) return;
 
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}api/horarios/eliminar/${id}`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/horarios/eliminar/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -288,14 +291,14 @@ export default function HorarioAtencion() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen gap-4 bg-gray-50">
-                <Loader2 className="animate-spin text-blue-600" size={54} />
-                <p className="text-2xl font-semibold text-gray-700">Cargando horarios...</p>
-            </div>
-        );
-    }
+    useEffect(() => {
+        if (activeTab === 'productos') navigate('/cafeteria');
+        if (activeTab === 'menu') navigate('/menu-diario');
+        if (activeTab === 'historial') navigate('/historial-almuerzos');
+        if (activeTab === 'promociones') navigate('/promociones');
+        if (activeTab === 'catering') navigate('/catering');
+        if (activeTab === 'horario-atencion') navigate('/horario-atencion');
+    }, [activeTab, navigate]);
 
     if (error) {
         return (
@@ -316,31 +319,66 @@ export default function HorarioAtencion() {
         <div className="cafeteria-container">
             {globalStyles}
 
-            {/* Header igual al de la página de referencia */}
             <div className="cafeteria-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <h1 className="cafeteria-title">Cafetería Admin</h1>
                         <p className="cafeteria-subtitle">Gestión de horarios de atención</p>
                     </div>
-                    <button onClick={() => {
-                        localStorage.removeItem('authToken');
-                        navigate('/login');
-                    }} className="btn-logout">
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem('authToken');
+                            navigate('/login');
+                        }}
+                        className="btn-logout"
+                    >
                         Cerrar sesión
                     </button>
                 </div>
             </div>
 
-            {/* Barra de acciones */}
-            <div className="actions-bar">
+            {/* Navbar horizontal – igual que referencia */}
+            <div className="navbar-horizontal">
                 <button
-                    onClick={() => navigate('/cafeteria')}
-                    className="btn-back"
+                    className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('productos')}
                 >
-                    <ArrowLeft size={20} /> Volver a Menús
+                    Lista de Productos
                 </button>
+                <button
+                    className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('menu')}
+                >
+                    Menú Diario
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('historial')}
+                >
+                    Historial de Almuerzos
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('promociones')}
+                >
+                    Promociones
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'catering' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('catering')}
+                >
+                    Catering
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'horario-atencion' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('horario-atencion')}
+                >
+                    Horarios de atención
+                </button>
+            </div>
 
+            {/* Botón crear + formulario */}
+            <div style={{ margin: '24px 0', textAlign: 'center' }}>
                 <button
                     onClick={() => {
                         setEditingId(null);
@@ -353,14 +391,14 @@ export default function HorarioAtencion() {
                         setFormOpen(true);
                     }}
                     className="btn-add"
+                    style={{ fontSize: '17px', padding: '14px 32px' }}
                 >
-                    <Plus size={20} /> Crear horario
+                    <Plus size={20} /> Crear nuevo horario
                 </button>
             </div>
 
-            {/* Formulario (crear o editar) */}
             {formOpen && (
-                <div className="form-container">
+                <div className="form-container" style={{ maxWidth: '700px', margin: '0 auto 32px' }}>
                     <h2 className="text-2xl font-bold mb-6">
                         {editingId ? 'Editar horario' : 'Nuevo horario de atención'}
                     </h2>
@@ -398,7 +436,7 @@ export default function HorarioAtencion() {
                         </div>
 
                         <div className="mt-8 flex justify-end gap-4">
-                            <button type="button" onClick={() => setFormOpen(false)} className="btn-back px-6 py-3">
+                            <button type="button" onClick={() => setFormOpen(false)} className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
                                 Cancelar
                             </button>
                             <button type="submit" disabled={saving} className="btn-add px-6 py-3">
@@ -410,8 +448,7 @@ export default function HorarioAtencion() {
                 </div>
             )}
 
-            {/* Lista de horarios */}
-            <h2 className="text-2xl font-bold mb-6">Horarios registrados</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center md:text-left">Horarios registrados</h2>
 
             {horarios.length === 0 ? (
                 <div className="empty-state">
@@ -444,7 +481,7 @@ export default function HorarioAtencion() {
                                         <span className="badge badge-inactive">Inactivo</span>
                                     )}
                                 </td>
-                                <td className="flex gap-3">
+                                <td className="flex gap-3 flex-wrap">
                                     <button onClick={() => startEdit(h)} className="btn-edit">Editar</button>
                                     <button
                                         onClick={() => toggleActive(h.idHorario)}

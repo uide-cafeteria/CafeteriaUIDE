@@ -6,169 +6,129 @@ import { ArrowLeft, Loader2, CheckCircle, XCircle, Ban, LogOut } from 'lucide-re
 export default function CateringAdmin() {
     const navigate = useNavigate();
 
+    const [activeTab, setActiveTab] = useState('catering');
     const [solicitudes, setSolicitudes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [processingId, setProcessingId] = useState(null);
 
     // ────────────────────────────────────────────────
-    // Estilos globales copiados y adaptados de MenuProductos
+    // Estilos globales (unificados con las páginas de referencia)
     // ────────────────────────────────────────────────
     const globalStyles = (
         <style>{`
-      .cafeteria-container { 
-        padding: 20px; 
-        min-height: 100vh; 
-        background: #f8fafc; 
-      }
-      .cafeteria-header {
-        background: linear-gradient(135deg, #1e293b, #0f172a);
-        padding: 32px 40px;
-        border-radius: 20px;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        color: white;
-      }
-      .cafeteria-title { 
-        font-size: 36px; 
-        font-weight: 800; 
-        margin: 0; 
-      }
-      .cafeteria-subtitle { 
-        font-size: 18px; 
-        opacity: 0.9; 
-        margin-top: 8px; 
-      }
-      .btn-logout {
-        background: #dc2626 !important;
-        color: white !important;
-        padding: 12px 24px;
-        border-radius: 14px;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 15px;
-        transition: all 0.2s ease;
-      }
-      .btn-logout:hover { 
-        background: #b91c1c !important; 
-        transform: scale(1.05); 
-      }
-      .actions-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 18px 25px;
-        margin: 18px 0;
-        background: #ffffff;
-        border-radius: 14px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      }
-      .actions-title { 
-        font-size: 22px; 
-        font-weight: 700; 
-        color: #0f172a; 
-        margin: 0; 
-      }
-      .btn-back {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        background: #e2e8f0;
-        color: #475569;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.3s;
-      }
-      .btn-back:hover { 
-        background: #cbd5e1; 
-        transform: translateY(-2px); 
-      }
-      .btn-confirm {
-        background: #10b981;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.2s;
-      }
-      .btn-confirm:hover:not(:disabled) { 
-        background: #059669; 
-        transform: scale(1.05); 
-      }
-      .btn-reject {
-        background: #ef4444;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.2s;
-      }
-      .btn-reject:hover:not(:disabled) { 
-        background: #dc2626; 
-        transform: scale(1.05); 
-      }
-      .btn-cancel {
-        background: #6b7280;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.2s;
-      }
-      .btn-cancel:hover:not(:disabled) { 
-        background: #4b5563; 
-        transform: scale(1.05); 
-      }
-      .table-bordered {
-        border-collapse: collapse;
-        width: 100%;
-        background: #ffffff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      .table-bordered th {
-        background: #f1f5f9;
-        padding: 14px;
-        border-bottom: 2px solid #e2e8f0;
-        font-weight: 600;
-        color: #334155;
-        text-align: left;
-      }
-      .table-bordered td {
-        padding: 16px 12px;
-        border-bottom: 1px solid #e5e7eb;
-        vertical-align: middle;
-      }
-      tr:hover { background: #f9fafb; }
-      .badge {
-        padding: 6px 12px;
-        border-radius: 9999px;
-        font-size: 0.875rem;
-        font-weight: 600;
-      }
-      .badge-pendiente { background: #fef3c7; color: #92400e; }
-      .badge-confirmada { background: #dcfce7; color: #166534; }
-      .badge-rechazada { background: #fee2e2; color: #991b1b; }
-      .badge-cancelada { background: #f3f4f6; color: #374151; }
-      .empty-state {
-        background: white;
-        border-radius: 20px;
-        padding: 60px 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        text-align: center;
-      }
-    `}</style>
+            .cafeteria-container { 
+                padding: 20px; 
+                min-height: 100vh; 
+                background: #f8fafc; 
+            }
+            .cafeteria-header {
+                background: linear-gradient(135deg, #1e293b, #0f172a);
+                padding: 32px 40px;
+                border-radius: 20px;
+                margin-bottom: 24px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                color: white;
+            }
+            .cafeteria-title { 
+                font-size: 36px; 
+                font-weight: 800; 
+                margin: 0; 
+            }
+            .cafeteria-subtitle { 
+                font-size: 18px; 
+                opacity: 0.9; 
+                margin-top: 8px; 
+            }
+            .btn-logout {
+                background: #dc2626 !important;
+                color: white !important;
+                padding: 12px 24px;
+                border-radius: 14px;
+                border: none;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 15px;
+                transition: all 0.2s ease;
+            }
+            .btn-logout:hover { 
+                background: #b91c1c !important; 
+                transform: scale(1.05); 
+            }
+            .navbar-horizontal {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin: 30px 0;
+                flex-wrap: wrap;
+            }
+            .tab-button {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 32px;
+                background: #e2e8f0;
+                color: #475569;
+                border: none;
+                border-radius: 18px;
+                font-size: 17px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+                min-width: 220px;
+            }
+            .tab-button:hover {
+                background: #cbd5e1;
+                transform: translateY(-4px);
+                box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+            }
+            .tab-button.active {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: white;
+                box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+                transform: translateY(-2px);
+            }
+            .table-bordered {
+                border-collapse: collapse;
+                width: 100%;
+                background: #ffffff;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .table-bordered th {
+                background: #f1f5f9;
+                padding: 14px;
+                border-bottom: 2px solid #e2e8f0;
+                font-weight: 600;
+                color: #334155;
+                text-align: left;
+            }
+            .table-bordered td {
+                padding: 16px 12px;
+                border-bottom: 1px solid #e5e7eb;
+                vertical-align: middle;
+            }
+            tr:hover { background: #f9fafb; }
+            .badge {
+                padding: 6px 12px;
+                border-radius: 9999px;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+            .badge-pendiente { background: #fef3c7; color: #92400e; }
+            .badge-confirmada { background: #dcfce7; color: #166534; }
+            .badge-rechazada { background: #fee2e2; color: #991b1b; }
+            .badge-cancelada { background: #f3f4f6; color: #374151; }
+            .empty-state {
+                background: white;
+                border-radius: 20px;
+                padding: 60px 30px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+        `}</style>
     );
 
     useEffect(() => {
@@ -180,7 +140,7 @@ export default function CateringAdmin() {
             }
 
             try {
-                const res = await fetch(`${process.env.REACT_APP_API_URL}api/catering/admin/todas`, {
+                const res = await fetch(`${process.env.REACT_APP_API_URL}/api/catering/admin/todas`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -209,7 +169,7 @@ export default function CateringAdmin() {
         const token = localStorage.getItem('authToken');
 
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}api/catering/admin/${idSolicitud}/responder`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/catering/admin/${idSolicitud}/responder`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -223,7 +183,6 @@ export default function CateringAdmin() {
                 throw new Error(errData.message || 'No se pudo procesar');
             }
 
-            // Actualizar lista local
             setSolicitudes(prev =>
                 prev.map(s => (s.idSolicitud === idSolicitud ? { ...s, estado } : s))
             );
@@ -239,7 +198,7 @@ export default function CateringAdmin() {
     const handleLogout = async () => {
         const token = localStorage.getItem('authToken');
         try {
-            await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
+            await fetch(`${process.env.REACT_APP_API_URL}/api/usuario/logout/admin`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -248,14 +207,14 @@ export default function CateringAdmin() {
         navigate('/login');
     };
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen gap-4 bg-gray-50">
-                <Loader2 className="animate-spin text-blue-600" size={54} />
-                <p className="text-2xl font-semibold text-gray-700">Cargando solicitudes de catering...</p>
-            </div>
-        );
-    }
+    useEffect(() => {
+        if (activeTab === 'productos') navigate('/cafeteria');
+        if (activeTab === 'menu') navigate('/menu-diario');
+        if (activeTab === 'historial') navigate('/historial-almuerzos');
+        if (activeTab === 'promociones') navigate('/promociones');
+        if (activeTab === 'catering') navigate('/catering');
+        if (activeTab === 'horario-atencion') navigate('/horario-atencion');
+    }, [activeTab, navigate]);
 
     if (error) {
         return (
@@ -284,23 +243,52 @@ export default function CateringAdmin() {
                         <p className="cafeteria-subtitle">Gestión de solicitudes de catering</p>
                     </div>
                     <button onClick={handleLogout} className="btn-logout">
-                        <LogOut size={20} /> Cerrar sesión
+                        Cerrar sesión
                     </button>
                 </div>
             </div>
 
-            {/* Barra de acciones */}
-            <div className="actions-bar" style={{ marginBottom: '32px' }}>
-                <button onClick={() => navigate('/cafeteria')} className="btn-back">
-                    <ArrowLeft size={20} /> Volver a Menús
+            {/* Navbar horizontal – ahora igual al de referencia */}
+            <div className="navbar-horizontal">
+                <button
+                    className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('productos')}
+                >
+                    Lista de Productos
                 </button>
-
-                <h2 className="actions-title">
-                    Solicitudes de Catering ({solicitudes.length})
-                </h2>
+                <button
+                    className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('menu')}
+                >
+                    Menú Diario
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('historial')}
+                >
+                    Historial de Almuerzos
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('promociones')}
+                >
+                    Promociones
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'catering' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('catering')}
+                >
+                    Catering
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'horario-atencion' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('horario-atencion')}
+                >
+                    Horarios de atención
+                </button>
             </div>
 
-            {/* Tabla de solicitudes */}
+            {/* Contenido principal */}
             {solicitudes.length === 0 ? (
                 <div className="empty-state">
                     <p className="text-xl text-gray-600">No hay solicitudes de catering aún</p>
@@ -351,11 +339,10 @@ export default function CateringAdmin() {
                                                 <button
                                                     onClick={() => handleResponder(s.idSolicitud, 'confirmada')}
                                                     disabled={processingId === s.idSolicitud}
-                                                    className="btn-confirm"
-                                                    title="Confirmar"
+                                                    className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition"
                                                 >
                                                     {processingId === s.idSolicitud ? (
-                                                        <Loader2 className="animate-spin" size={18} />
+                                                        <Loader2 className="animate-spin inline" size={18} />
                                                     ) : (
                                                         <CheckCircle size={18} />
                                                     )}
@@ -364,8 +351,7 @@ export default function CateringAdmin() {
                                                 <button
                                                     onClick={() => handleResponder(s.idSolicitud, 'rechazada')}
                                                     disabled={processingId === s.idSolicitud}
-                                                    className="btn-reject"
-                                                    title="Rechazar"
+                                                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
                                                 >
                                                     <XCircle size={18} />
                                                 </button>
@@ -373,8 +359,7 @@ export default function CateringAdmin() {
                                                 <button
                                                     onClick={() => handleResponder(s.idSolicitud, 'cancelada')}
                                                     disabled={processingId === s.idSolicitud}
-                                                    className="btn-cancel"
-                                                    title="Cancelar"
+                                                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                                 >
                                                     <Ban size={18} />
                                                 </button>

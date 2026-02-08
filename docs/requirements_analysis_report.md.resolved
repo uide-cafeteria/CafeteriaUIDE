@@ -1,0 +1,225 @@
+# Reporte de Análisis de Requerimientos - Cafetería UIDE
+
+## Resumen Ejecutivo
+
+Este documento presenta un análisis exhaustivo comparando las funcionalidades implementadas en el proyecto **CafeteriaUIDE** contra los requerimientos documentados en el [SRS.md](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/docs/SRS.md) y las necesidades identificadas en las entrevistas.
+
+---
+
+## 1. Análisis de Funcionalidades Implementadas
+
+### 1.1 Estructura del Proyecto
+
+El proyecto tiene una arquitectura de tres capas:
+
+| Componente | Tecnología | Descripción |
+|------------|------------|-------------|
+| **Backend** | Node.js + Express + Sequelize | API REST con 7 controladores |
+| **Móvil** | Flutter/Dart | App para clientes (Android/iOS) |
+| **Web** | React.js | Panel administrativo |
+
+### 1.2 Funcionalidades del Backend (Controllers)
+
+| Controlador | Funciones | Estado |
+|------------|-----------|--------|
+| `usuarioController` | Registro Firebase, registro email/contraseña, login admin, login usuario | ✅ Implementado |
+| `productoController` | CRUD productos con imágenes, activar/desactivar | ✅ Implementado |
+| `menuDelDiaController` | Crear menú, agregar/quitar productos, activar menú, notificaciones push | ✅ Implementado |
+| `promocionController` | CRUD promociones con imágenes, activar/desactivar | ✅ Implementado |
+| `horarioAtencionController` | CRUD horarios públicos y admin, toggle estado | ✅ Implementado |
+| `historialAlmuerzoController` | Mostrar historial usuario/admin, registrar almuerzo, buscar por token/QR | ✅ Implementado |
+| `cateringController` | Crear solicitud, listar, responder, cancelar, validación 48h | ✅ Implementado |
+
+### 1.3 Modelos de Base de Datos
+
+```
+├── usuario (auth, loyalty_token para QR)
+├── producto (nombre, descripcion, precio, imagen, categoria, ubicacion)
+├── menu_diario / menuDelDia (asignación de productos por día)
+├── menuDelDiaProducto (relación many-to-many)
+├── promocion (titulo, descripcion, imagen, fechas)
+├── historial_almuerzo (tracking de almuerzos para promoción gratuita)
+├── horario_atencion (horarios por ubicación y día)
+├── solicitud_catering (reservas con estado)
+└── comentario (tabla existe en SQL pero SIN implementación)
+```
+
+### 1.4 Pantallas de la App Móvil
+
+| Pantalla | Funcionalidad |
+|----------|---------------|
+| [login_screen.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/screens/login_screen.dart) | Login con Firebase/Google y email |
+| [register_screen.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/screens/register_screen.dart) | Registro de nuevos usuarios |
+| [home_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/home_page.dart) | Menú del día (especial, desayunos, almuerzos) con horarios |
+| [promotions_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/promotions_page.dart) | Lista de promociones activas |
+| [CustomerPromotionsPage.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/CustomerPromotionsPage.dart) | Promociones para clientes |
+| [historial_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/historial_page.dart) | Historial de almuerzos del usuario (tracking 10 almuerzos) |
+| [profile_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/profile_page.dart) | Perfil del usuario |
+| [main_screen.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/screens/main_screen.dart) | Navegación principal |
+
+### 1.5 Panel Web Administrativo
+
+| Página | Funcionalidad |
+|--------|---------------|
+| [MenuProductos.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/MenuProductos.jsx) | Gestión de productos |
+| [MenuDiarioPage.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/MenuDiarioPage.jsx) | Gestión del menú del día |
+| [PromocionPage.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/PromocionPage.jsx) | Gestión de promociones |
+| [HorarioAtencionPage.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/HorarioAtencionPage.jsx) | Gestión de horarios |
+| [HistorialAlmuerzosPage.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/HistorialAlmuerzosPage.jsx) | Historial global de almuerzos |
+| [HistorialUsuarioPage.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/HistorialUsuarioPage.jsx) | Historial por usuario |
+| [ScanConfirmPage.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/ScanConfirmPage.jsx) | Escaneo de QR y confirmación |
+| [Cafeteria.jsx](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/web/src/app/Cafeteria.jsx) | Dashboard principal |
+
+---
+
+## 2. Comparación: SRS vs Implementación
+
+### 2.1 Requerimientos Funcionales (RF)
+
+| RF | Descripción | Estado | Observaciones |
+|----|-------------|--------|---------------|
+| **RF-01** | Ver menú del día (nombre, descripción, ingredientes, imagen, precio) | ⚠️ Parcial | **Falta campo de ingredientes** en modelo [Producto](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/productoController.js#42-90). Solo tiene `descripcion` |
+| **RF-02** | Mostrar ofertas/promociones del día | ✅ Completo | `promocionController` + [promotions_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/promotions_page.dart) |
+| **RF-03** | Consultar historial de almuerzos (promoción almuerzo gratis) | ✅ Completo | `historialAlmuerzoController` + [historial_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/historial_page.dart) |
+| **RF-04** | Mostrar hora apertura/cierre | ✅ Completo | `horarioAtencionController` + header en [home_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/home_page.dart) |
+| **RF-05** | Personal puede agregar/editar/eliminar productos y ofertas | ✅ Completo | Panel web con CRUD completo |
+| **RF-06** | Solicitar catering (fecha, hora, tipo evento, contacto, 48h anticipación) | ✅ Completo | `cateringController` con validación de 48h |
+| **RF-07** | Autenticación con correo y Google | ✅ Completo | Firebase Auth + email/password |
+| **RF-08** | Carga de imágenes desde interfaz admin | ✅ Completo | Middleware `multer` + endpoints de upload |
+| **RF-09** | Enviar sugerencias, comentarios o reclamos | ❌ **NO IMPLEMENTADO** | Tabla `comentario` existe en SQL pero **no hay controller ni servicio** |
+| **RF-10** | Menú del día y promociones visualmente distintas | ✅ Completo | Pantallas separadas: `home_page` vs `promotions_page` |
+| **RF-11** | Registro con correo y contraseña | ✅ Completo | [registroClienteCorreo](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/usuarioController.js#94-170) en `usuarioController` |
+
+> [!WARNING]
+> **RF-01** y **RF-09** requieren atención inmediata.
+
+---
+
+## 3. Hallazgos de las Entrevistas vs SRS
+
+### 3.1 Análisis de Entrevistas
+
+#### Entrevista 1 (Estudiantes)
+| Necesidad Identificada | ¿Está en SRS? | ¿Implementado? |
+|------------------------|---------------|----------------|
+| Pedidos anticipados | ❌ No (excluido del MVP) | ❌ No |
+| Ver ingredientes del producto | ✅ RF-01 | ⚠️ Parcial (falta campo) |
+| Personalizar pedido (agregar/quitar ingredientes) | ❌ No | ❌ No |
+| Métodos de pago (transferencias, tarjeta) | ❌ No (excluido del MVP) | ❌ No |
+| Interfaz intuitiva y rápida | ✅ RNF-06, RNF-07 | ✅ Sí |
+| Ver presentación/fotos reales del plato | ✅ RF-01, RF-08 | ✅ Sí |
+
+#### Entrevista 2 (Dueña de la Cafetería)
+| Necesidad Identificada | ¿Está en SRS? | ¿Implementado? |
+|------------------------|---------------|----------------|
+| Sistema de tarjeta/stickers digital (10 almuerzos) | ✅ RF-03 | ✅ Sí (QR + historial) |
+| Menú del día visible | ✅ RF-01 | ✅ Sí |
+| Promociones visibles | ✅ RF-02 | ✅ Sí |
+| Combos y descuentos | ✅ RF-02 | ✅ Sí |
+| Catering con 48h anticipación | ✅ RF-06 | ✅ Sí |
+| Publicidad en pantallas de cafetería | ❌ No | ❌ No |
+| Sugerencias/comentarios de usuarios | ✅ RF-09 | ❌ **NO** |
+| Fotos reales de los platos | ✅ RF-01, RF-08 | ✅ Sí |
+| Mantener logotipo actual | ✅ Implícito | ✅ Sí |
+| Colores llamativos | ✅ RNF-08 | ✅ Sí |
+
+---
+
+## 4. Requerimientos Faltantes en el SRS
+
+Basándome en las entrevistas, los siguientes requerimientos **deberían agregarse al SRS** pero están fuera del alcance actual (MVP):
+
+| # | Requerimiento Sugerido | Origen | Prioridad |
+|---|------------------------|--------|-----------|
+| 1 | **Mostrar ingredientes de cada producto** | Entrevista 1 | 🔴 Alta |
+| 2 | Publicidad/imágenes promocionales en TV de cafetería | Entrevista 2 | 🟡 Media |
+| 3 | Sistema de personalización de pedidos (agregar/quitar ingredientes) | Entrevista 1 | 🟢 Baja (fuera MVP) |
+| 4 | Pedidos anticipados con hora de recogida | Entrevista 1 | 🟢 Baja (fuera MVP) |
+| 5 | Métodos de pago integrados | Entrevista 1 | 🟢 Baja (fuera MVP) |
+| 6 | Notificaciones push para nuevas promociones | Implícito | 🟡 Media (ya existe para menú) |
+
+> [!IMPORTANT]
+> El **RF-01 establece que se deben mostrar ingredientes**, pero el modelo [Producto](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/productoController.js#42-90) actual solo tiene `descripcion`. Se debe agregar un campo `ingredientes` o usar la descripción para listarlos.
+
+---
+
+## 5. Requerimientos del SRS NO Implementados
+
+| RF | Descripción | Estado | Acción Requerida |
+|----|-------------|--------|------------------|
+| **RF-09** | Sistema de sugerencias, comentarios o reclamos | ❌ No implementado | Crear `comentarioController`, rutas, modelo Sequelize y pantalla en app móvil |
+| **RF-01 (parcial)** | Lista de ingredientes por producto | ❌ Campo no existe | Agregar campo `ingredientes` al modelo [Producto](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/productoController.js#42-90) o documentar uso de `descripcion` |
+
+---
+
+## 6. Recomendaciones
+
+### 6.1 Acciones Prioritarias (🔴 Críticas)
+
+1. **Implementar RF-09: Sistema de comentarios/sugerencias**
+   - Crear `comentarioController.js`
+   - Crear modelo Sequelize basado en tabla existente
+   - Agregar rutas en backend
+   - Crear pantalla en app móvil
+   - Agregar vista en panel web para admin
+
+2. **Completar RF-01: Agregar campo ingredientes**
+   - Modificar modelo [Producto](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/productoController.js#42-90) agregando campo `ingredientes TEXT`
+   - Actualizar formularios de creación/edición en web admin
+   - Mostrar ingredientes en cards de la app móvil
+
+### 6.2 Mejoras Sugeridas (🟡 Media Prioridad)
+
+3. **Expandir notificaciones push**
+   - Ya existe para menú del día → extender a promociones nuevas
+
+4. **Sistema de calificación**
+   - La tabla `comentario` ya incluye campo `calificacion (1-5)`
+   - Implementar sistema de estrellas en la app
+
+### 6.3 Consideraciones para Futuras Versiones
+
+5. **Pedidos anticipados** (fuera del MVP actual pero muy solicitado)
+6. **Integración de pagos** (transferencias, tarjeta)
+7. **Personalización de pedidos** (agregar/quitar ingredientes)
+8. **Sistema de publicidad digital** para pantallas en cafetería
+
+---
+
+## 7. Resumen de Estado
+
+| Categoría | Completados | Parciales | No Implementados |
+|-----------|-------------|-----------|------------------|
+| **RF (Funcionales)** | 9/11 (82%) | 1/11 (9%) | 1/11 (9%) |
+| **Entrevistas → SRS** | 6/10 (60%) | 1/10 (10%) | 3/10 (30%) |
+
+### Gráfico de Cumplimiento
+
+```
+RF Implementados:    ████████████████████░░ 82%
+RF Parciales:        ██░░░░░░░░░░░░░░░░░░░░  9%
+RF No Implementados: ██░░░░░░░░░░░░░░░░░░░░  9%
+```
+
+---
+
+## 8. Archivos Clave del Proyecto
+
+### Backend
+- [productoController.js](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/productoController.js)
+- [cateringController.js](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/cateringController.js)
+- [historialAlmuerzoController.js](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/controllers/historialAlmuerzoController.js)
+- [cafeteria_uide.sql](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/backend/cafeteria_uide.sql) (incluye tabla `comentario` no implementada)
+
+### Móvil
+- [home_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/home_page.dart)
+- [historial_page.dart](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/src/movil/lib/ui/pages/historial_page.dart)
+
+### Documentación
+- [SRS.md](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/docs/SRS.md)
+- [Entrevista 1](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/docs/entrevists/video_1/transcription.txt)
+- [Entrevista 2](file:///home/alddrin/Escritorio/Deberes%20Universidad/Ingenieria%20de%20Software/CafeteriaUIDE/docs/entrevists/video_2/transcription.txt)
+
+---
+
+*Reporte generado el 2026-02-05*

@@ -26,7 +26,7 @@ export default function ScanConfirmPage() {
 
   const buscarEstudiante = async (loyalty_token) => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}api/historial/buscar/${loyalty_token}`);
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/historial/buscar/${loyalty_token}`);
       const data = await res.json();
 
       if (res.ok && data.status) {
@@ -45,7 +45,7 @@ export default function ScanConfirmPage() {
     setRegistrando(true);
     try {
       const authToken = localStorage.getItem('authToken');
-      const res = await fetch(`${process.env.REACT_APP_API_URL}api/historial/registrar`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/historial/registrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

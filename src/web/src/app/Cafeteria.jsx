@@ -184,7 +184,7 @@ export default function Cafeteria({ onLogout }) {
         try {
           setLoadingProductos(true);
           const token = localStorage.getItem('authToken');
-          const res = await fetch(`${process.env.REACT_APP_API_URL}api/producto/mostrar`, {
+          const res = await fetch(`${process.env.REACT_APP_API_URL}/api/producto/mostrar`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (!res.ok) throw new Error();
@@ -213,7 +213,7 @@ export default function Cafeteria({ onLogout }) {
   const handleLogout = async () => {
     const token = localStorage.getItem('authToken');
     try {
-      await fetch(`${process.env.REACT_APP_API_URL}api/usuario/logout/admin`, {
+      await fetch(`${process.env.REACT_APP_API_URL}/api/usuario/logout/admin`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -267,7 +267,7 @@ export default function Cafeteria({ onLogout }) {
     fd.append('activo', !product.activo);
     fd.append('imagen', product.imagen);
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}api/producto/actualizar/${product.idProducto}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/producto/actualizar/${product.idProducto}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: fd
@@ -315,8 +315,8 @@ export default function Cafeteria({ onLogout }) {
     else if (formData.imageUrl?.trim()) fd.append('imagen', formData.imageUrl.trim());
     try {
       const url = editingItem
-        ? `${process.env.REACT_APP_API_URL}api/producto/actualizar/${editingItem.idProducto}`
-        : `${process.env.REACT_APP_API_URL}api/producto/crear`;
+        ? `${process.env.REACT_APP_API_URL}/api/producto/actualizar/${editingItem.idProducto}`
+        : `${process.env.REACT_APP_API_URL}/api/producto/crear`;
       const method = editingItem ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -343,9 +343,12 @@ export default function Cafeteria({ onLogout }) {
 
   // Redirigir a otras páginas cuando cambie la pestaña
   useEffect(() => {
+    if (activeTab === 'productos') navigate('/cafeteria');
     if (activeTab === 'menu') navigate('/menu-diario');
     if (activeTab === 'historial') navigate('/historial-almuerzos');
     if (activeTab === 'promociones') navigate('/promociones');
+    if (activeTab === 'catering') navigate('/catering');
+    if (activeTab === 'horario-atencion') navigate('/horario-atencion');
   }, [activeTab, navigate]);
 
   return (
@@ -364,18 +367,43 @@ export default function Cafeteria({ onLogout }) {
         </div>
       </div>
 
+      {/* Navbar horizontal – ahora igual al de referencia */}
       <div className="navbar-horizontal">
-        <button className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`} onClick={() => setActiveTab('productos')}>
+        <button
+          className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('productos')}
+        >
           Lista de Productos
         </button>
-        <button className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>
+        <button
+          className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
+          onClick={() => setActiveTab('menu')}
+        >
           Menú Diario
         </button>
-        <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+        <button
+          className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
+          onClick={() => setActiveTab('historial')}
+        >
           Historial de Almuerzos
         </button>
-        <button className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`} onClick={() => setActiveTab('promociones')}>
+        <button
+          className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
+          onClick={() => setActiveTab('promociones')}
+        >
           Promociones
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'catering' ? 'active' : ''}`}
+          onClick={() => setActiveTab('catering')}
+        >
+          Catering
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'horario-atencion' ? 'active' : ''}`}
+          onClick={() => setActiveTab('horario-atencion')}
+        >
+          Horarios de atención
         </button>
       </div>
 

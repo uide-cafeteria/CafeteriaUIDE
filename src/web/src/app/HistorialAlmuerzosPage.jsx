@@ -1,7 +1,7 @@
 // src/pages/HistorialAlmuerzosPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { History, Loader2, RefreshCw, Eye, Tag } from 'lucide-react';
+import { History, Loader2, RefreshCw, Eye } from 'lucide-react';
 
 export default function HistorialAlmuerzosPage({ onLogout }) {
   const [activeTab, setActiveTab] = useState('historial');
@@ -10,7 +10,6 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Estilos (incluyendo los del navbar)
   const globalStyles = (
     <style>{`
       .cafeteria-container {
@@ -199,7 +198,7 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
       const token = localStorage.getItem('authToken');
       if (!token) throw new Error('No hay sesión');
 
-      const res = await fetch(`${process.env.REACT_APP_API_URL}api/historial/admin/global`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/historial/admin/global`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -231,18 +230,20 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
     if (onLogout) onLogout();
     navigate('/login');
   };
-  // Redirigir a otras páginas cuando cambie la pestaña
+
   useEffect(() => {
     if (activeTab === 'cafeteria') navigate('/cafeteria');
     if (activeTab === 'menu') navigate('/menu-diario');
     if (activeTab === 'historial') navigate('/historial-almuerzos');
     if (activeTab === 'promociones') navigate('/promociones');
+    if (activeTab === 'catering') navigate('/catering');
+    if (activeTab === 'horario-atencion') navigate('/horario-atencion');
   }, [activeTab, navigate]);
+
   return (
     <div className="cafeteria-container">
       {globalStyles}
 
-      {/* Header */}
       <div className="cafeteria-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -255,23 +256,45 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
         </div>
       </div>
 
-      {/* NAVBAR HORIZONTAL */}
       <div className="navbar-horizontal">
-        <button className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`} onClick={() => setActiveTab('productos')}>
+        <button
+          className={`tab-button ${activeTab === 'cafeteria' ? 'active' : ''}`}
+          onClick={() => setActiveTab('cafeteria')}
+        >
           Lista de Productos
         </button>
-        <button className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>
+        <button
+          className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
+          onClick={() => setActiveTab('menu')}
+        >
           Menú Diario
         </button>
-        <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+        <button
+          className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`}
+          onClick={() => setActiveTab('historial')}
+        >
           Historial de Almuerzos
         </button>
-        <button className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`} onClick={() => setActiveTab('promociones')}>
+        <button
+          className={`tab-button ${activeTab === 'promociones' ? 'active' : ''}`}
+          onClick={() => setActiveTab('promociones')}
+        >
           Promociones
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'catering' ? 'active' : ''}`}
+          onClick={() => setActiveTab('catering')}
+        >
+          Catering
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'horario-atencion' ? 'active' : ''}`}
+          onClick={() => setActiveTab('horario-atencion')}
+        >
+          Horarios de atención
         </button>
       </div>
 
-      {/* Acciones superiores */}
       <div className="actions-bar">
         <h2 className="actions-title">Registros Recientes</h2>
 
@@ -285,7 +308,6 @@ export default function HistorialAlmuerzosPage({ onLogout }) {
         </button>
       </div>
 
-      {/* Contenido principal */}
       <div className="table-container">
         {loading ? (
           <div className="p-20 text-center">
