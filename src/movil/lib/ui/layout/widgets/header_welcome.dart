@@ -1,378 +1,251 @@
-// lib/layout/widgets/welcome_header.dart
+import 'package:cafeteria_uide/config/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../../config/app_theme.dart';
-import '../../../services/horario_atencion_service.dart';
+import 'dart:math'; // para elegir promociones aleatorias
 
 class WelcomeHeader extends StatefulWidget {
   final String userName;
+  final double shrinkOffset;
+  final double maxShrinkOffset;
+  final bool isLoggedIn;
+  final VoidCallback? onLogout;
+  final VoidCallback? onLogin;
+  final bool isCafeOpen; // ← Nuevo: si la cafetería está abierta
+  final String closingTime; // ← Nuevo: hora de cierre (ej: "20:00")
 
-  const WelcomeHeader({super.key, required this.userName});
+  const WelcomeHeader({
+    super.key,
+    required this.userName,
+    this.shrinkOffset = 0,
+    this.maxShrinkOffset = 100,
+    this.isLoggedIn = false,
+    this.onLogout,
+    this.onLogin,
+    this.isCafeOpen = false,
+    this.closingTime = "—",
+  });
 
   @override
   State<WelcomeHeader> createState() => _WelcomeHeaderState();
 }
 
 class _WelcomeHeaderState extends State<WelcomeHeader> {
-  bool _isLoading = true;
-  bool _isOpen = false;
-  String _closingTime = "—";
-  String _locationName = "Cargando...";
-  String _errorMessage = "";
-  List<dynamic> _allHorarios = []; // para mostrar en el bottom sheet
+  bool _hasSeenNotification = false; // Controla si ya vio el mensaje
 
-  @override
-  void initState() {
-    super.initState();
-    _loadHorarios();
-  }
+  // Lista de mensajes de promociones aleatorios
+  final List<String> _promoMessages = [
+    "¡Nuevas promociones estudiantiles",
+    "¡Oferta exclusiva! Aprovecha en La Cafeteria",
+    "¡Descubre nuestras novedades! Combos nuevos",
+    "¡Gracias por tu fidelidad! Recuerda canjear la promoción de almuerzos",
+  ];
 
-  Future<void> _loadHorarios() async {
-    final service = HorarioAtencionService();
-    final result = await HorarioAtencionService.getHorariosPublicos();
+  void _showNotification() {
+    if (_hasSeenNotification) return; // Ya lo vio, no mostrar de nuevo
 
-    if (!mounted) return;
+    final random = Random();
+    final promoText = _promoMessages[random.nextInt(_promoMessages.length)];
 
-    setState(() {
-      _isLoading = false;
-    });
+    final cafeMessage = widget.isCafeOpen
+        ? "¡La cafetería está abierta! Cierra a las ${widget.closingTime}"
+        : "La cafetería está cerrada. Vuelve mañana 😔";
 
-    if (result['success'] == true) {
-      final horarios = result['horarios'] as List<dynamic>;
-      _allHorarios = horarios;
-
-      // Día actual en español
-      final now = DateTime.now();
-      final diaSemana = DateFormat('EEEE', 'es_ES').format(now);
-      final diaCapitalizado =
-          diaSemana[0].toUpperCase() + diaSemana.substring(1);
-
-      // Horarios de hoy
-      final horariosHoy = horarios.where((h) {
-        return h['dia_semana'] == diaCapitalizado;
-      }).toList();
-
-      if (horariosHoy.isEmpty) {
-        setState(() {
-          _isOpen = false;
-          _closingTime = "—";
-          _locationName = "No hay horario hoy";
-        });
-        return;
-      }
-
-      // Tomamos uno representativo (el primero que esté abierto, o el primero)
-      final horarioActual = horariosHoy.firstWhere(
-        (h) => _estaAbiertoAhora(h),
-        orElse: () => horariosHoy.first,
-      );
-
-      final horaCierre = horarioActual['hora_cierre'] as String?;
-      final ubicacion = horarioActual['ubicacion'] as String? ?? "Cafetería";
-
-      final timeFormat = DateFormat("h:mm a", 'es');
-      final closingTimeFormatted = horaCierre != null
-          ? timeFormat.format(DateFormat("HH:mm:ss").parse(horaCierre))
-          : "—";
-
-      final isOpenNow = _estaAbiertoAhora(horarioActual);
-
-      setState(() {
-        _isOpen = isOpenNow;
-        _closingTime = closingTimeFormatted;
-        _locationName = ubicacion == 'cafeteria'
-            ? "Cafetería UIDE"
-            : "Rooftop UIDE";
-      });
-    } else {
-      setState(() {
-        _errorMessage =
-            result['message'] ?? "No se pudieron cargar los horarios";
-        _isOpen = false;
-        _closingTime = "—";
-        _locationName = "Sin información";
-      });
-    }
-  }
-
-  bool _estaAbiertoAhora(Map<String, dynamic> horario) {
-    final now = DateTime.now();
-    final currentTime = TimeOfDay.fromDateTime(now);
-
-    final aperturaStr = horario['hora_apertura'] as String?;
-    final cierreStr = horario['hora_cierre'] as String?;
-
-    if (aperturaStr == null || cierreStr == null) return false;
-
-    final apertura = TimeOfDay(
-      hour: int.parse(aperturaStr.split(':')[0]),
-      minute: int.parse(aperturaStr.split(':')[1]),
-    );
-
-    final cierre = TimeOfDay(
-      hour: int.parse(cierreStr.split(':')[0]),
-      minute: int.parse(cierreStr.split(':')[1]),
-    );
-
-    final nowMinutes = currentTime.hour * 60 + currentTime.minute;
-    final aperturaMinutes = apertura.hour * 60 + apertura.minute;
-    final cierreMinutes = cierre.hour * 60 + cierre.minute;
-
-    if (cierreMinutes < aperturaMinutes) {
-      return nowMinutes >= aperturaMinutes || nowMinutes <= cierreMinutes;
-    }
-
-    return nowMinutes >= aperturaMinutes && nowMinutes <= cierreMinutes;
-  }
-
-  void _showHorariosBottomSheet() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Horarios de Atención",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (_allHorarios.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32),
-                        child: Text("No hay horarios disponibles"),
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: ListView.builder(
-                        controller: scrollController,
-                        itemCount: _allHorarios.length,
-                        itemBuilder: (context, index) {
-                          final h = _allHorarios[index];
-                          final ubicacion = h['ubicacion'] == 'cafeteria'
-                              ? "Cafetería"
-                              : "Rooftop";
-                          final dia = h['dia_semana'];
-                          final apertura =
-                              h['hora_apertura']?.substring(0, 5) ?? "—";
-                          final cierre =
-                              h['hora_cierre']?.substring(0, 5) ?? "—";
-                          final estado = h['activo'] == true
-                              ? "Activo"
-                              : "Inactivo";
-
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: Icon(
-                                h['activo'] == true
-                                    ? Icons.check_circle
-                                    : Icons.cancel,
-                                color: h['activo'] == true
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                              title: Text(
-                                "$ubicacion - $dia",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Text(
-                                "Apertura: $apertura • Cierre: $cierre",
-                              ),
-                              trailing: Text(
-                                estado,
-                                style: TextStyle(
-                                  color: h['activo'] == true
-                                      ? Colors.green[800]
-                                      : Colors.red[800],
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                ],
+      builder: (context) => AlertDialog(
+        title: const Text(
+          "¡Notificaciones!",
+          style: TextStyle(color: AppTheme.primaryColor),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(cafeMessage, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 12),
+            Text(
+              promoText,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.orange,
               ),
-            );
-          },
-        );
-      },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() => _hasSeenNotification = true); // Marca como visto
+            },
+            child: const Text(
+              "Entendido",
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _showHorariosBottomSheet, // ← al tocar abre el bottom sheet
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF5D4037),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.white.withOpacity(0.25),
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Bienvenido de nuevo",
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+    final progress = (widget.shrinkOffset / widget.maxShrinkOffset).clamp(
+      0.0,
+      1.0,
+    );
+    final scale = 1.0 - (progress * 0.15);
+    final opacity = 1.0 - (progress * 0.6);
+
+    final primary = AppTheme.primaryColor;
+    final textOpacity = opacity.clamp(0.7, 1.0);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12 + widget.shrinkOffset.clamp(0, 40),
+        20,
+        20,
+      ),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Opacity(
+        opacity: textOpacity,
+        child: Transform.scale(
+          scale: scale.clamp(0.92, 1.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar con menú
+              GestureDetector(
+                onTap: () {
+                  showMenu(
+                    context: context,
+                    position: RelativeRect.fromLTRB(
+                      20,
+                      kToolbarHeight + 10,
+                      20,
+                      0,
+                    ),
+                    items: [
+                      if (widget.isLoggedIn)
+                        PopupMenuItem(
+                          value: 'logout',
+                          child: const ListTile(
+                            leading: Icon(
+                              Icons.logout_rounded,
+                              color: Colors.redAccent,
+                            ),
+                            title: Text('Cerrar sesión'),
+                          ),
+                          onTap: widget.onLogout,
+                        )
+                      else
+                        PopupMenuItem(
+                          value: 'login',
+                          child: ListTile(
+                            leading: Icon(Icons.login_rounded, color: primary),
+                            title: const Text('Iniciar sesión'),
+                          ),
+                          onTap: widget.onLogin,
                         ),
-                      ),
-                      Text(
-                        "Hola, ${widget.userName.isNotEmpty ? widget.userName : 'Usuario'}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ],
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF69F0AE), Color(0xFF00C853)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person_rounded, size: 34, color: primary),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    // notificaciones
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
-                borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
+
+              const SizedBox(width: 16),
+
+              // Textos
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Bienvenido de nuevo,",
+                      style: TextStyle(
+                        color: AppTheme.textColor.withOpacity(0.50),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.userName.isNotEmpty ? widget.userName : "Usuario",
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 23,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Campanita con badge (solo si NO ha visto la notificación)
+              Stack(
                 children: [
-                  if (_isLoading)
-                    const SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                  IconButton(
+                    icon: Icon(
+                      Icons.notifications_none_rounded,
+                      color: primary,
+                      size: 30,
+                    ),
+                    onPressed: _showNotification,
+                  ),
+                  if (!_hasSeenNotification)
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: Container(
+                        width: 11,
+                        height: 11,
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.redAccent,
+                              blurRadius: 6,
+                              spreadRadius: 1.5,
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  else
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: _isOpen
-                            ? Colors.greenAccent[400]
-                            : Colors.redAccent,
-                        shape: BoxShape.circle,
-                      ),
                     ),
-                  const SizedBox(width: 10),
-                  Text(
-                    _isLoading
-                        ? "Cargando..."
-                        : (_isOpen ? "ABIERTO" : "CERRADO"),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isLoading
-                        ? ""
-                        : (_isOpen
-                              ? "• Cierra a las $_closingTime"
-                              : "• Cerrado"),
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.90),
-                      fontSize: 14,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _locationName,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                 ],
               ),
-            ),
-            if (_errorMessage.isNotEmpty && !_isLoading)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _errorMessage,
-                  style: const TextStyle(
-                    color: Colors.orangeAccent,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

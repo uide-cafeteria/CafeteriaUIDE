@@ -218,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
               validator: Validators.emailValidator,
-              decoration: _inputDecoration('correo@ejemplo.com'),
+              decoration: _inputDecoration('correo@uide.edu.ec'),
             ),
 
             const SizedBox(height: 16),

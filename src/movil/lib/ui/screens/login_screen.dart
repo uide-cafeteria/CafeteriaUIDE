@@ -1,4 +1,5 @@
 import 'package:cafeteria_uide/services/auth_service.dart';
+import 'package:cafeteria_uide/ui/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import '/utils/validators.dart';
 
@@ -12,9 +13,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController(); // AÑADIDO
+  final _passwordCtrl = TextEditingController();
   bool _loading = false;
-  bool _obscurePassword = true; // AÑADIDO
+  bool _obscurePassword = true;
 
   final AuthService authService = AuthService();
 
@@ -31,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = false);
 
     if (result['success']) {
-      // Login exitoso
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('¡Bienvenido!'),
@@ -40,7 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       Navigator.pushReplacementNamed(context, '/home');
     } else {
-      // Error del servidor o credenciales
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Credenciales incorrectas'),
@@ -48,12 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
-  }
-
-  void _loginWithGoogle() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login con Google próximamente')),
-    );
   }
 
   @override
@@ -167,65 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
-
-            OutlinedButton(
-              onPressed: _loginWithGoogle,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                side: const BorderSide(color: Color(0xFFE0E0E0)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.network(
-                    'https://www.google.com/favicon.ico',
-                    width: 20,
-                    height: 20,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.g_mobiledata,
-                      size: 24,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Continuar con Google',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF3D3D3D),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-                Expanded(
-                  child: Container(height: 1, color: const Color(0xFFE0E0E0)),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'o',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
-                  ),
-                ),
-                Expanded(
-                  child: Container(height: 1, color: const Color(0xFFE0E0E0)),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 32), // un poco más de espacio arriba
             // Campo de correo electrónico
             const Align(
               alignment: Alignment.centerLeft,
@@ -244,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
               keyboardType: TextInputType.emailAddress,
               validator: Validators.emailValidator,
               decoration: InputDecoration(
-                hintText: 'correo@correo.com',
+                hintText: 'correo@uide.edu.ec',
                 hintStyle: const TextStyle(
                   color: Color(0xFFBDBDBD),
                   fontSize: 14,
@@ -267,7 +202,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // CAMPO DE CONTRASEÑA AÑADIDO AQUÍ
             const SizedBox(height: 16),
             const Align(
               alignment: Alignment.centerLeft,
@@ -320,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Botón "Continuar con correo"
             SizedBox(
@@ -355,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             TextButton(
               onPressed: () => Navigator.pushNamed(context, '/register'),
@@ -380,15 +314,16 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
 
             TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/main');
+              },
               child: const Text(
-                '¿Olvidaste tu contraseña?',
+                'Continua sin Iniciar Sesión',
                 style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
               ),
             ),
 
-            //Powered by
-            const SizedBox(height: 20), // un poco de separación
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -404,15 +339,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Image.asset('assets/images/q_powered.png', height: 20),
                 const SizedBox(width: 4),
                 Text(
-                  'YaQbit', // Cambia esto por lo que quieras
+                  'YaQbit',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color.fromRGBO(
-                      232,
-                      165,
-                      75,
-                      1,
-                    ), // mismo dorado que el botón principal
+                    color: Color.fromRGBO(232, 165, 75, 1),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -425,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// El painter del logo queda exactamente igual
+// El painter del logo queda igual
 class CafeteriaLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

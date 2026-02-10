@@ -3,11 +3,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../config/app_theme.dart';
 import '../../../models/menu_del_dia_producto.dart';
 
-class BreakfastDishCard extends StatelessWidget {
+class OtrosProductosCard extends StatelessWidget {
   final MenuDelDiaProducto item;
   final VoidCallback? onTap;
 
-  const BreakfastDishCard({super.key, required this.item, this.onTap});
+  const OtrosProductosCard({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +22,11 @@ class BreakfastDishCard extends StatelessWidget {
           // Imagen sola, redondeada por los 4 lados, SIN fondo blanco
           ClipRRect(
             borderRadius: BorderRadius.circular(
-              50,
+              30,
             ), // bordes redondeados por todos lados
             child: SizedBox(
-              width: 180, // ancho fijo pequeño
-              height: 180, // altura igual para que sea cuadrada/redondeada
+              width: 140, // ancho fijo pequeño
+              height: 140, // altura igual para que sea cuadrada/redondeada
               child: CachedNetworkImage(
                 imageUrl: producto.imagen ?? '',
                 fit: BoxFit.cover,

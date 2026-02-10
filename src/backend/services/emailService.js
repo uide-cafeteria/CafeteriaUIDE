@@ -14,13 +14,13 @@ export class GmailEmailService {
     #oauth2Client = null;
     #credentialsPath = join(__dirname, 'client_secret.json');
     #tokenPath = join(__dirname, 'token.json');
-    
+
     constructor() {
         this.init().catch(error => {
             console.warn('Inicialización parcial:', error.message);
         });
     }
-    
+
     async init() {
         try {
             await this.loadCredentials();
@@ -29,82 +29,83 @@ export class GmailEmailService {
             throw error;
         }
     }
-    
+
     async loadCredentials() {
         try {
             const content = await fs.readFile(this.#credentialsPath, 'utf8');
             this.#credentials = JSON.parse(content);
-            
-            const { client_secret, client_id, redirect_uris } = this.#credentials.installed;
-            
+
+            // CAMBIO AQUÍ: usa .web en lugar de .installed
+            const { client_secret, client_id, redirect_uris } = this.#credentials.web;
+
             this.#oauth2Client = new google.auth.OAuth2(
                 client_id,
                 client_secret,
-                redirect_uris[0]
+                redirect_uris[0]  // http://localhost:3001/api/auth/google/callback
             );
-            
-            console.log('Credenciales OAuth2 cargadas');
+
+            console.log('Credenciales OAuth2 (web) cargadas correctamente');
             return true;
         } catch (error) {
             console.error('Error cargando credenciales:', error.message);
             throw new Error(`No se pudieron cargar las credenciales: ${error.message}`);
         }
     }
-    
+
     generateAuthUrl() {
         if (!this.#oauth2Client) {
             throw new Error('OAuth2 client no inicializado');
         }
-        
+
         const scopes = [
             'https://www.googleapis.com/auth/gmail.send'
         ];
-        
+
         return this.#oauth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',
             scope: scopes
         });
     }
-    
+
     async authorize(code) {
         if (!code?.trim()) {
             throw new Error('Código de autorización requerido');
         }
-        
+
         try {
             const { tokens } = await this.#oauth2Client.getToken(code);
-            
+
             if (!tokens.refresh_token) {
                 throw new Error('No se obtuvo refresh token. Revoca permisos previos y reintenta.');
             }
-            
+
             await fs.writeFile(this.#tokenPath, JSON.stringify(tokens, null, 2));
             this.#oauth2Client.setCredentials(tokens);
-            
+
             console.log('Autorización completada');
             return tokens;
         } catch (error) {
             throw new Error(`Error en autorización: ${error.message}`);
         }
     }
-    
+
     async loadTokens() {
         try {
             const tokenData = await fs.readFile(this.#tokenPath, 'utf8');
             const tokens = JSON.parse(tokenData);
-            
+
             if (!tokens.refresh_token) {
                 throw new Error('No hay refresh token');
             }
-            
+
             this.#oauth2Client.setCredentials(tokens);
             return true;
         } catch (error) {
             return false;
         }
     }
-    
+
     async needsAuthorization() {
         if (!this.#oauth2Client) {
             try {
@@ -113,10 +114,10 @@ export class GmailEmailService {
                 return true;
             }
         }
-        
+
         const tokensLoaded = await this.loadTokens();
         if (!tokensLoaded) return true;
-        
+
         try {
             await this.#oauth2Client.getAccessToken();
             return false;
@@ -124,20 +125,20 @@ export class GmailEmailService {
             return true;
         }
     }
-    
+
     async sendEmail(mailOptions) {
         this.validateEmailOptions(mailOptions);
         await this.ensureAuthorized();
-        
+
         try {
             const gmail = google.gmail({ version: 'v1', auth: this.#oauth2Client });
             const encodedMessage = this.buildEncodedMessage(mailOptions);
-            
+
             const result = await gmail.users.messages.send({
                 userId: 'me',
                 requestBody: { raw: encodedMessage }
             });
-            
+
             console.log('Correo enviado:', result.data.id);
             return {
                 success: true,
@@ -153,7 +154,7 @@ export class GmailEmailService {
             };
         }
     }
-    
+
     validateEmailOptions(mailOptions) {
         if (!mailOptions.to || !mailOptions.subject) {
             throw new Error('Faltan campos requeridos: to, subject');
@@ -162,17 +163,17 @@ export class GmailEmailService {
             throw new Error('Debe proporcionar contenido en text o html');
         }
     }
-    
+
     async ensureAuthorized() {
         if (await this.needsAuthorization()) {
             throw new Error('Necesita autorización OAuth2');
         }
     }
-    
+
     buildEncodedMessage(mailOptions) {
         const senderName = process.env.SENDER_NAME || 'Gmail API';
         const fromAddress = `${senderName} <${process.env.GMAIL_USER}>`;
-        
+
         const message = [
             `From: ${fromAddress}`,
             `To: ${mailOptions.to}`,
@@ -182,14 +183,14 @@ export class GmailEmailService {
             '',
             mailOptions.html || mailOptions.text
         ].join('\r\n');
-        
+
         return Buffer.from(message)
             .toString('base64')
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
     }
-    
+
     async sendTestEmail() {
         const testOptions = {
             to: process.env.GMAIL_USER,
@@ -201,33 +202,33 @@ export class GmailEmailService {
                 <p><strong>Usuario:</strong> ${process.env.GMAIL_USER}</p>
             `
         };
-        
+
         return await this.sendEmail(testOptions);
     }
-    
+
     async getStatus() {
         const status = {
             initialized: !!this.#oauth2Client,
             authorized: false,
             user: process.env.GMAIL_USER || 'No configurado'
         };
-        
+
         if (this.#oauth2Client) {
             status.authorized = !(await this.needsAuthorization());
         }
-        
+
         return status;
     }
-    
+
     async revokeAccess() {
         try {
             if (this.#oauth2Client?.credentials?.access_token) {
                 await this.#oauth2Client.revokeCredentials();
             }
-            
-            await fs.unlink(this.#tokenPath).catch(() => {});
+
+            await fs.unlink(this.#tokenPath).catch(() => { });
             this.#oauth2Client?.setCredentials({});
-            
+
             console.log('Acceso revocado');
         } catch (error) {
             console.error('Error revocando acceso:', error);

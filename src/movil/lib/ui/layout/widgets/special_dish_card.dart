@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/menu_del_dia_producto.dart'; // ← tu modelo
 
+// SpecialDishCard.dart (versión simplificada, sin título interno)
+
 class SpecialDishCard extends StatelessWidget {
   const SpecialDishCard({
     super.key,
@@ -29,25 +31,28 @@ class SpecialDishCard extends StatelessWidget {
         : "Almuerzo Ejecutivo";
 
     final String precioStr = "\$${item.precioFinal.toStringAsFixed(2)}";
-
     final String? imagenUrl = producto.imagen;
 
+    // Rating (puedes venir del modelo después)
+    const double rating = 4.2; // ← reemplaza por item.rating cuando exista
+
     return GestureDetector(
-      onTap: onTap, // si quieres navegación al detalle al tocar toda la card
+      onTap: onTap,
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.hardEdge,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        // Más ancha: margen horizontal reducido
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Imagen + precio
+            // Imagen + precio badge
             Stack(
               children: [
                 AspectRatio(
-                  aspectRatio: 16 / 10,
+                  aspectRatio: 16 / 9, // más ancho visualmente
                   child: CachedNetworkImage(
                     imageUrl: imagenUrl ?? '',
                     fit: BoxFit.cover,
@@ -67,8 +72,6 @@ class SpecialDishCard extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // Badge precio (arriba derecha, como antes)
                 Positioned(
                   top: 12,
                   right: 12,
@@ -106,48 +109,56 @@ class SpecialDishCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    nombre,
-                    style: const TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // Rating stars (por ahora estático, puedes obtenerlo del backend después)
+                  // Nombre + estrellas en la misma fila
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ...List.generate(5, (i) {
-                        const double rating =
-                            3.5; // ← aquí puedes poner item.rating si lo tienes
-                        final starValue = i + 1;
-                        if (starValue <= rating.floor()) {
-                          return const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 20,
-                          );
-                        } else if (starValue - 0.5 <= rating) {
-                          return const Icon(
-                            Icons.star_half,
-                            color: Colors.amber,
-                            size: 20,
-                          );
-                        } else {
-                          return const Icon(
-                            Icons.star_border,
-                            color: Colors.grey,
-                            size: 20,
-                          );
-                        }
-                      }),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '3.5',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      Expanded(
+                        child: Text(
+                          nombre,
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ...List.generate(5, (i) {
+                            final starValue = i + 1;
+                            if (starValue <= rating.floor()) {
+                              return const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 22,
+                              );
+                            } else if (starValue - 0.5 <= rating) {
+                              return const Icon(
+                                Icons.star_half,
+                                color: Colors.amber,
+                                size: 22,
+                              );
+                            } else {
+                              return const Icon(
+                                Icons.star_border,
+                                color: Colors.grey,
+                                size: 22,
+                              );
+                            }
+                          }),
+                          const SizedBox(width: 6),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

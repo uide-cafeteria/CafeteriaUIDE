@@ -1,3 +1,5 @@
+import 'package:cafeteria_uide/config/app_theme.dart';
+import 'package:cafeteria_uide/ui/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cafeteria_uide/utils/secure_storage.dart';
@@ -5,7 +7,9 @@ import 'package:cafeteria_uide/services/historial_service.dart';
 import 'dart:math' as math;
 
 class HistorialPage extends StatefulWidget {
-  const HistorialPage({super.key});
+  final bool fromBottomBar;
+
+  const HistorialPage({super.key, this.fromBottomBar = true});
 
   @override
   State<HistorialPage> createState() => _HistorialPageState();
@@ -135,17 +139,32 @@ class _HistorialPageState extends State<HistorialPage>
     final double progress = _pagados % 10 / 10;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.cardColor,
+      appBar: AppBar(
+        title: const Text(
+          'Mi Fidelidad',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+
+        leading: widget.fromBottomBar
+            ? null
+            : IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_rounded,
+                  color: Colors.black87,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+      ),
       body: Stack(
         children: [
-          // Fondo decorativo animado
-          _buildAnimatedBackground(),
-
           // Contenido principal
           SafeArea(
             child: Column(
               children: [
-                _buildCustomAppBar(),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _cargarDatosUsuario,
@@ -264,20 +283,6 @@ class _HistorialPageState extends State<HistorialPage>
       ),
       child: Row(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Theme.of(context).primaryColor,
-                size: 20,
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -476,7 +481,7 @@ class _HistorialPageState extends State<HistorialPage>
                   : QrImageView(
                       data: _loyaltyToken.isEmpty
                           ? "cargando..."
-                          : "http://localhost:3000/scan-confirm?loyalty_token=$_loyaltyToken",
+                          : "http://172.16.83.194:3000/scan-confirm?loyalty_token=$_loyaltyToken",
                       version: QrVersions.auto,
                       size: qrSize,
                       gapless: false,

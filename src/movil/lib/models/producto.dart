@@ -7,6 +7,7 @@ class Producto {
   final String? imagen;
   final bool especial;
   final String categoria;
+  final String ubicacion;
   final bool activo;
 
   Producto({
@@ -17,6 +18,7 @@ class Producto {
     this.imagen,
     required this.especial,
     required this.categoria,
+    required this.ubicacion,
     required this.activo,
   });
 
@@ -36,6 +38,7 @@ class Producto {
       imagen: json['imagen'],
       especial: json['especial'] ?? false,
       categoria: json['categoria'] ?? 'Otro',
+      ubicacion: json['ubicacion'] ?? 'Cafeteria',
       activo: json['activo'] ?? true,
     );
   }

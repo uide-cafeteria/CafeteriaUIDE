@@ -48,6 +48,10 @@ class SecureStorage {
   static Future<void> deleteEmail() async =>
       await _storage.delete(key: 'correo');
 
+  static Future<void> deleteAll() async {
+    await const FlutterSecureStorage().deleteAll();
+  }
+
   // ────────────────────────────────────────────────
   // Loyalty Token
   // ────────────────────────────────────────────────

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../pages/home_page.dart';
 import '../pages/promotions_page.dart';
+import '../pages/historial_page.dart';
+import '../../config/app_theme.dart';
 import '../pages/catering_page.dart';
 import '../pages/profile_page.dart';
+import '../../utils/secure_storage.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,155 +16,94 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  bool _isLoggedIn = false;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    PromotionsPage(),
-    ProfilePage(),
-    CateringPage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final loggedIn = await SecureStorage.isLoggedIn();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+      });
+    }
+  }
+
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return const HomePage();
+      case 1:
+        return const PromotionsPage();
+      case 2:
+        if (_isLoggedIn) return const HistorialPage();
+        return const HomePage(); // fallback si no está logueado
+      case 3:
+        if (_isLoggedIn) return const CateringPage();
+        return const HomePage(); // fallback
+      default:
+        return const HomePage();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: SafeArea(
-        bottom: false,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _pages[_currentIndex],
-        ),
+    // Ítems dinámicos según si está logueado
+    final List<BottomNavigationBarItem> items = [
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.home_outlined),
+        activeIcon: Icon(Icons.home),
+        label: 'Inicio',
       ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.local_offer_outlined),
+        activeIcon: Icon(Icons.local_offer),
+        label: 'Promociones',
+      ),
+    ];
 
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(
-          20,
+    // Solo agregar Historial y Catering si está logueado
+    if (_isLoggedIn) {
+      items.addAll([
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.history_outlined),
+          activeIcon: Icon(Icons.history),
+          label: 'Historial',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.receipt_long_outlined),
+          activeIcon: Icon(Icons.receipt_long),
+          label: 'Catering',
+        ),
+      ]);
+    }
+
+    return Scaffold(
+      body: SafeArea(bottom: false, child: _buildPage(_currentIndex)),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex.clamp(
           0,
-          20,
-          MediaQuery.of(context).padding.bottom + 16,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(40),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-                spreadRadius: 1,
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          constraints: const BoxConstraints(minHeight: 0, maxHeight: 80),
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-
-              // Colores (sin cambiar tamaños)
-              selectedItemColor: const Color(0xFFE8A54B),
-              unselectedItemColor: Colors.grey[600],
-              selectedFontSize: 12,
-              unselectedFontSize: 10,
-              iconSize: 28,
-
-              // Eliminar TODO efecto de selección (ripple, fondo, indicador)
-              enableFeedback: false,
-
-              // Centrado vertical de íconos respecto al label
-              selectedLabelStyle: const TextStyle(
-                //height: 1.0,
-                //fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: const TextStyle(height: 1.0),
-
-              items: const [
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                    height:
-                        40, // ← este valor es clave: más alto que el iconSize para dar espacio abajo
-                    child: Align(
-                      // Align en lugar de Center → más control
-                      alignment: Alignment
-                          .bottomCenter, // pega el ícono hacia abajo (más cerca del label)
-                      child: Icon(Icons.restaurant_menu_outlined),
-                    ),
-                  ),
-                  activeIcon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.restaurant_menu),
-                    ),
-                  ),
-                  label: 'Menú',
-                ),
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.local_offer_outlined),
-                    ),
-                  ),
-                  activeIcon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.local_offer),
-                    ),
-                  ),
-                  label: 'Promociones',
-                ),
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.person_outline),
-                    ),
-                  ),
-                  activeIcon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.person),
-                    ),
-                  ),
-                  label: 'Perfil',
-                ),
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.food_bank_rounded),
-                    ),
-                  ),
-                  activeIcon: SizedBox(
-                    height: 40,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.food_bank_rounded),
-                    ),
-                  ),
-                  label: 'Catering',
-                ),
-              ],
-            ),
-          ),
-        ),
+          items.length - 1,
+        ), // evita índices inválidos
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppTheme.cardColor,
+        selectedItemColor: AppTheme.primaryColor,
+        unselectedItemColor: Colors.black54,
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        iconSize: 26,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+        elevation: 8,
+        items: items,
       ),
     );
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF5D4037);
+  static const Color primaryColor = Color.fromARGB(255, 129, 87, 74);
   static const Color accentColor = Color(0xFFFF7043);
   static const Color backgroundColor = Color(0xFFFAFAFA);
   static const Color cardColor = Colors.white;
+  static const Color textColor = Colors.black;
   static const Color surfaceColor = Color(0xFFF5F0E6);
 
   static final ThemeData lightTheme = ThemeData(
