@@ -241,8 +241,7 @@ export default function HorarioAtencion() {
             const data = await res.json();
             setHorarios(data.horarios || []);
         } catch (err) {
-            console.error('Error loadHorarios:', err);
-            setError(err.message || 'Error desconocido al cargar horarios');
+            //XD
         } finally {
             setLoading(false);
         }
@@ -288,8 +287,8 @@ export default function HorarioAtencion() {
 
             loadHorarios();
         } catch (err) {
-            console.error('Error handleSubmit:', err);
-            alert(err.message || 'No se pudo guardar el horario');
+            //console.error('Error handleSubmit:', err);
+            //alert(err.message || 'No se pudo guardar el horario');
         } finally {
             setSaving(false);
         }
@@ -307,26 +306,26 @@ export default function HorarioAtencion() {
     };
 
     const toggleActive = async (horario) => {
-        console.log('toggleActive llamado con horario:', horario);
+        //console.log('toggleActive llamado con horario:', horario);
 
         const id = horario?.idHorario;
         if (!id) {
-            console.error('ID de horario no encontrado');
-            alert('ID de horario no encontrado');
+            //console.error('ID de horario no encontrado');
+            //alert('ID de horario no encontrado');
             return;
         }
 
         setTogglingId(id);
 
         try {
-            console.log('Llamando API toggle:', `${process.env.REACT_APP_API_URL}/api/horarios/${id}/activar`);
+            //console.log('Llamando API toggle:', `${process.env.REACT_APP_API_URL}/api/horarios/${id}/activar`);
 
             const res = await fetch(`${process.env.REACT_APP_API_URL}/api/horarios/${id}/activar`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            console.log('Respuesta API toggle - Status:', res.status);
+            //console.log('Respuesta API toggle - Status:', res.status);
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
@@ -334,7 +333,7 @@ export default function HorarioAtencion() {
             }
 
             const data = await res.json(); // ← lee la respuesta
-            console.log('Respuesta completa del backend:', data); // ← DEBUG clave
+            //console.log('Respuesta completa del backend:', data); // ← DEBUG clave
 
             // Actualización optimista
             setHorarios(prev =>
@@ -346,8 +345,7 @@ export default function HorarioAtencion() {
             // Refrescar desde servidor
             loadHorarios();
         } catch (err) {
-            console.error('Error en toggleActive:', err);
-            alert(`Error al cambiar estado: ${err.message}`);
+            //XD
         } finally {
             setTogglingId(null);
         }
