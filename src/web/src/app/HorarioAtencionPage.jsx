@@ -21,160 +21,199 @@ export default function HorarioAtencion() {
     const [editingId, setEditingId] = useState(null);
     const [saving, setSaving] = useState(false);
 
+    const [togglingId, setTogglingId] = useState(null); // loading por horario específico
+
     const token = localStorage.getItem('authToken');
 
     const globalStyles = (
         <style>{`
-            .cafeteria-container { 
-                padding: 20px; 
-                min-height: 100vh; 
-                background: #f8fafc; 
-            }
-            .cafeteria-header {
-                background: linear-gradient(135deg, #1e293b, #0f172a);
-                padding: 32px 40px;
-                border-radius: 20px;
-                margin-bottom: 24px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                color: white;
-            }
-            .cafeteria-title { 
-                font-size: 36px; 
-                font-weight: 800; 
-                margin: 0; 
-            }
-            .cafeteria-subtitle { 
-                font-size: 18px; 
-                opacity: 0.9; 
-                margin-top: 8px; 
-            }
-            .btn-logout {
-                background: #dc2626 !important;
-                color: white !important;
-                padding: 12px 24px;
-                border-radius: 14px;
-                border: none;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 15px;
-                transition: all 0.2s ease;
-            }
-            .btn-logout:hover { 
-                background: #b91c1c !important; 
-                transform: scale(1.05); 
-            }
-            .navbar-horizontal {
-                display: flex;
-                justify-content: center;
-                gap: 20px;
-                margin: 30px 0;
-                flex-wrap: wrap;
-            }
-            .tab-button {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 16px 32px;
-                background: #e2e8f0;
-                color: #475569;
-                border: none;
-                border-radius: 18px;
-                font-size: 17px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-                min-width: 220px;
-            }
-            .tab-button:hover {
-                background: #cbd5e1;
-                transform: translateY(-4px);
-                box-shadow: 0 12px 25px rgba(0,0,0,0.2);
-            }
-            .tab-button.active {
-                background: linear-gradient(135deg, #3b82f6, #2563eb);
-                color: white;
-                box-shadow: 0 10px 30px rgba(59,130,246,0.4);
-                transform: translateY(-2px);
-            }
-            .btn-add {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 12px 20px;
-                background: #3b82f6;
-                color: white;
-                border: none;
-                border-radius: 12px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: 0.3s;
-            }
-            .btn-add:hover { 
-                background: #2563eb; 
-                transform: translateY(-2px); 
-            }
-            .btn-edit {
-                background: #f59e0b;
-                color: white;
-                border: none;
-                padding: 8px 14px;
-                border-radius: 10px;
-                cursor: pointer;
-            }
-            .btn-delete {
-                background: #ef4444;
-                color: white;
-                border: none;
-                padding: 8px 14px;
-                border-radius: 10px;
-                cursor: pointer;
-            }
-            .table-bordered {
-                border-collapse: collapse;
-                width: 100%;
-                background: #ffffff;
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }
-            .table-bordered th {
-                background: #f1f5f9;
-                padding: 14px;
-                border-bottom: 2px solid #e2e8f0;
-                font-weight: 600;
-                color: #334155;
-                text-align: left;
-            }
-            .table-bordered td {
-                padding: 16px 12px;
-                border-bottom: 1px solid #e5e7eb;
-                vertical-align: middle;
-            }
-            tr:hover { background: #f9fafb; }
-            .badge {
-                padding: 6px 12px;
-                border-radius: 9999px;
-                font-size: 0.875rem;
-                font-weight: 600;
-            }
-            .badge-active { background: #dcfce7; color: #166534; }
-            .badge-inactive { background: #fee2e2; color: #991b1b; }
-            .form-container {
-                background: white;
-                padding: 24px;
-                border-radius: 12px;
-                margin-bottom: 32px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }
-            .empty-state {
-                background: white;
-                border-radius: 20px;
-                padding: 60px 30px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                text-align: center;
-            }
-        `}</style>
+      .cafeteria-container { 
+        padding: 20px; 
+        min-height: 100vh; 
+        background: #f8fafc; 
+      }
+      .cafeteria-header {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        padding: 32px 40px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        color: white;
+      }
+      .cafeteria-title { 
+        font-size: 36px; 
+        font-weight: 800; 
+        margin: 0; 
+      }
+      .cafeteria-subtitle { 
+        font-size: 18px; 
+        opacity: 0.9; 
+        margin-top: 8px; 
+      }
+      .btn-logout {
+        background: #dc2626 !important;
+        color: white !important;
+        padding: 12px 24px;
+        border-radius: 14px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.2s ease;
+      }
+      .btn-logout:hover { 
+        background: #b91c1c !important; 
+        transform: scale(1.05); 
+      }
+      .navbar-horizontal {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 30px 0;
+        flex-wrap: wrap;
+      }
+      .tab-button {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 32px;
+        background: #e2e8f0;
+        color: #475569;
+        border: none;
+        border-radius: 18px;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        min-width: 220px;
+      }
+      .tab-button:hover {
+        background: #cbd5e1;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+      }
+      .tab-button.active {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+        transform: translateY(-2px);
+      }
+      .btn-add {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+      .btn-add:hover { 
+        background: #2563eb; 
+        transform: translateY(-2px); 
+      }
+      .btn-edit {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .btn-delete {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .table-bordered {
+        border-collapse: collapse;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .table-bordered th {
+        background: #f1f5f9;
+        padding: 14px;
+        border-bottom: 2px solid #e2e8f0;
+        font-weight: 600;
+        color: #334155;
+        text-align: left;
+      }
+      .table-bordered td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+      }
+      tr:hover { background: #f9fafb; }
+      .badge {
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+      .badge-active { background: #dcfce7; color: #166534; }
+      .badge-inactive { background: #fee2e2; color: #991b1b; }
+      .form-container {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        margin-bottom: 32px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 60px 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+      }
+
+      /* SWITCH - DISEÑO EXACTO COPIADO DE PROMOCIONPAGE */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+      }
+      .slider {
+        position: absolute;
+        inset: 0;
+        background: #cbd5e1;
+        border-radius: 28px;
+        transition: .3s;
+      }
+      .slider:before {
+        content: "";
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        left: 3px;
+        top: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: .3s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      }
+      input:checked + .slider {
+        background: #22c55e;
+      }
+      input:checked + .slider:before {
+        transform: translateX(24px);
+      }
+      input:disabled + .slider {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    `}</style>
     );
 
     useEffect(() => {
@@ -194,11 +233,16 @@ export default function HorarioAtencion() {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (!res.ok) throw new Error('No se pudieron cargar los horarios');
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'No se pudieron cargar los horarios');
+            }
+
             const data = await res.json();
             setHorarios(data.horarios || []);
         } catch (err) {
-            setError(err.message || 'Error desconocido');
+            console.error('Error loadHorarios:', err);
+            setError(err.message || 'Error desconocido al cargar horarios');
         } finally {
             setLoading(false);
         }
@@ -244,6 +288,7 @@ export default function HorarioAtencion() {
 
             loadHorarios();
         } catch (err) {
+            console.error('Error handleSubmit:', err);
             alert(err.message || 'No se pudo guardar el horario');
         } finally {
             setSaving(false);
@@ -252,26 +297,59 @@ export default function HorarioAtencion() {
 
     const startEdit = (horario) => {
         setFormData({
-            ubicacion: horario.ubicacion,
-            dia_semana: horario.dia_semana,
-            hora_apertura: horario.hora_apertura?.substring(0, 5) || '08:00',
-            hora_cierre: horario.hora_cierre?.substring(0, 5) || '18:00',
+            ubicacion: horario.ubicacion ?? 'cafeteria',
+            dia_semana: horario.dia_semana ?? 'Lunes',
+            hora_apertura: horario.hora_apertura?.substring(0, 5) ?? '08:00',
+            hora_cierre: horario.hora_cierre?.substring(0, 5) ?? '18:00',
         });
         setEditingId(horario.idHorario);
         setFormOpen(true);
     };
 
-    const toggleActive = async (id) => {
+    const toggleActive = async (horario) => {
+        console.log('toggleActive llamado con horario:', horario);
+
+        const id = horario?.idHorario;
+        if (!id) {
+            console.error('ID de horario no encontrado');
+            alert('ID de horario no encontrado');
+            return;
+        }
+
+        setTogglingId(id);
+
         try {
+            console.log('Llamando API toggle:', `${process.env.REACT_APP_API_URL}/api/horarios/${id}/activar`);
+
             const res = await fetch(`${process.env.REACT_APP_API_URL}/api/horarios/${id}/activar`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (!res.ok) throw new Error('No se pudo cambiar el estado');
+            console.log('Respuesta API toggle - Status:', res.status);
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Error ${res.status}: ${res.statusText}`);
+            }
+
+            const data = await res.json(); // ← lee la respuesta
+            console.log('Respuesta completa del backend:', data); // ← DEBUG clave
+
+            // Actualización optimista
+            setHorarios(prev =>
+                prev.map(h =>
+                    h.idHorario === id ? { ...h, activo: !h.activo } : h
+                )
+            );
+
+            // Refrescar desde servidor
             loadHorarios();
         } catch (err) {
-            alert(err.message || 'Error al cambiar estado');
+            console.error('Error en toggleActive:', err);
+            alert(`Error al cambiar estado: ${err.message}`);
+        } finally {
+            setTogglingId(null);
         }
     };
 
@@ -337,7 +415,6 @@ export default function HorarioAtencion() {
                 </div>
             </div>
 
-            {/* Navbar horizontal – igual que referencia */}
             <div className="navbar-horizontal">
                 <button
                     className={`tab-button ${activeTab === 'productos' ? 'active' : ''}`}
@@ -377,7 +454,6 @@ export default function HorarioAtencion() {
                 </button>
             </div>
 
-            {/* Botón crear + formulario */}
             <div style={{ margin: '24px 0', textAlign: 'center' }}>
                 <button
                     onClick={() => {
@@ -475,20 +551,29 @@ export default function HorarioAtencion() {
                                 <td>{h.hora_apertura?.substring(0, 5) || '—'}</td>
                                 <td>{h.hora_cierre?.substring(0, 5) || '—'}</td>
                                 <td>
-                                    {h.activo ? (
-                                        <span className="badge badge-active">Activo</span>
-                                    ) : (
-                                        <span className="badge badge-inactive">Inactivo</span>
-                                    )}
+                                    <span className={`badge ${h.activo ? 'badge-active' : 'badge-inactive'}`}>
+                                        {h.activo ? 'Activo' : 'Inactivo'}
+                                    </span>
                                 </td>
-                                <td className="flex gap-3 flex-wrap">
-                                    <button onClick={() => startEdit(h)} className="btn-edit">Editar</button>
-                                    <button
-                                        onClick={() => toggleActive(h.idHorario)}
-                                        className={h.activo ? 'btn-delete' : 'btn-add'}
-                                    >
-                                        {h.activo ? 'Desactivar' : 'Activar'}
+                                <td className="flex gap-3 flex-wrap items-center">
+                                    <button onClick={() => startEdit(h)} className="btn-edit">
+                                        <Edit size={16} /> Editar
                                     </button>
+
+                                    <label className="switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!h.activo} // !! para evitar undefined/null
+                                            disabled={togglingId === h.idHorario}
+                                            onChange={() => toggleActive(h)} // pasa el objeto completo
+                                        />
+                                        <span className="slider"></span>
+                                    </label>
+
+                                    {togglingId === h.idHorario && (
+                                        <Loader2 className="animate-spin text-blue-600" size={18} />
+                                    )}
+
                                     <button onClick={() => removeHorario(h.idHorario)} className="btn-delete">
                                         <Trash2 size={18} />
                                     </button>

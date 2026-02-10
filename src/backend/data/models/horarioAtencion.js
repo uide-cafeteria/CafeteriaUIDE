@@ -37,6 +37,12 @@ const HorarioAtencion = sequelize.define(
             allowNull: false,
             field: "hora_cierre",
         },
+        activo: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+            field: "activo",
+        },
     },
     {
         tableName: "horario_atencion",
