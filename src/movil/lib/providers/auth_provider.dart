@@ -18,7 +18,7 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AuthProvider() {
-    _loadSession(); // ← clave: cargar al instanciar
+    _loadSession();
   }
 
   Future<void> _loadSession() async {
@@ -41,6 +41,32 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // MÉTODO PÚBLICO - lo llamamos desde VerifyOtpScreen
+  Future<void> refreshSession() async {
+    print(
+      '>>> AuthProvider: refrescando sesión desde storage (sin loading global)',
+    );
+
+    // Leemos directamente sin poner _isLoading = true para no reiniciar la app
+    final savedToken = await SecureStorage.getToken();
+    final savedUsername = await SecureStorage.getUserName();
+    final savedCodigo = await SecureStorage.getCodigoUnico();
+    final savedCorreo = await SecureStorage.getEmail();
+    final savedLoyalty = await SecureStorage.getLoyaltyToken();
+
+    _token = savedToken;
+    _username = savedUsername;
+    _codigoUnico = savedCodigo;
+    _correo = savedCorreo;
+    _loyaltyToken = savedLoyalty;
+
+    // Solo notificamos una vez con los nuevos datos
+    notifyListeners();
+    print(
+      '>>> AuthProvider: sesión refrescada - isAuthenticated: $isAuthenticated',
+    );
+  }
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     final result = await AuthService().login(email, password);
 
@@ -52,7 +78,6 @@ class AuthProvider with ChangeNotifier {
       _correo = data['usuario']['correo'];
       _loyaltyToken = data['usuario']['loyalty_token'];
 
-      // Ya se guardó en SecureStorage dentro de AuthService
       notifyListeners();
     }
 

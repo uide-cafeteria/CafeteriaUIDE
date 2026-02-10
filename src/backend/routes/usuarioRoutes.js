@@ -10,6 +10,7 @@ router.post('/registro/correo', usuarioController.registroClienteCorreo);
 //autenticación 
 router.post('/auth/admin', usuarioController.adminAuth);
 router.post('/auth/cliente', usuarioController.userAuth);
+router.post('/verificar-codigo', usuarioController.verificarCodigo);
 //cerrar sesion administrador
 router.post('/logout/admin', usuarioController.logoutAdmin);
 

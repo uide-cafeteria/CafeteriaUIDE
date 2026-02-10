@@ -100,13 +100,10 @@ Se propone el desarrollo de una aplicación móvil que facilite la consulta del 
 - **RF-04**: El sistema debe mostrar la hora de apertura y de cierre del establecimiento.  
 - **RF-05**: El sistema debe permitir al personal de la cafetería y rooftop agregar, editar o eliminar productos y ofertas.  
 - **RF-06**: El sistema debe permitir al usuario solicitar el servicio de catering mediante un formulario con datos como fecha, hora, tipo de evento y contacto, con al menos 48 horas de anticipación.  
-- **RF-07**: El sistema debe permitir la autenticación de usuarios mediante correo, Google.  
+- **RF-07**: El sistema debe permitir la autenticación de usuarios mediante correo y contraseña.  
 - **RF-08**: El sistema debe permitir la carga de imágenes de productos, menús y ofertas desde la interfaz de administración.
-- **RF-09**: El sistema debe permitir a los usuarios enviar sugerencias, comentarios o reclamos a la administración.
-- **RF-10**: El sistema debe presentar de forma visualmente distinta el "Menú del Día" y las "Promociones" para evitar confusiones.
-- **RF-11**: El sistema debe permitir el registro de usuarios mediante correo y contraseña.
-- **RF-12**: El sistema debe permitir mostrar en las pantallas TV de la cafetería las promociones
-vigentes.
+- **RF-09**: El sistema debe presentar de forma visualmente distinta el "Menú del Día" y las "Promociones" para evitar confusiones.
+- **RF-10**: El sistema debe permitir el registro de usuarios mediante correo institucional y contraseña.
 
 ---
 

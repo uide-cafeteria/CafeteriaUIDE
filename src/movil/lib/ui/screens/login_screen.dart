@@ -91,41 +91,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLogo() {
     return Column(
       children: [
-        Container(
-          width: 120,
-          height: 80,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5E6D3),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: CustomPaint(painter: CafeteriaLogoPainter()),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'La Cafetería',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'Pacifico',
-            color: Color(0xFF3D3D3D),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFF3D3D3D), width: 1),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Text(
-            'TU LUGAR FAVORITO',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.5,
-              color: Color(0xFF3D3D3D),
-            ),
-          ),
+        // Reemplazo: imagen en lugar de CustomPaint
+        Image.asset(
+          'assets/images/logo_cafeteria.png',
+          width: 250, // ajusta según cómo se vea mejor
+          height: 250, // puedes cambiar a 120, 140, etc.
+          fit: BoxFit.contain, // mantiene proporciones sin distorsión
         ),
       ],
     );
@@ -353,70 +324,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
-
-// El painter del logo queda igual
-class CafeteriaLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF3D3D3D)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final tablePath = Path();
-    tablePath.moveTo(size.width * 0.2, size.height * 0.7);
-    tablePath.lineTo(size.width * 0.8, size.height * 0.7);
-    tablePath.moveTo(size.width * 0.25, size.height * 0.7);
-    tablePath.lineTo(size.width * 0.2, size.height * 0.95);
-    tablePath.moveTo(size.width * 0.75, size.height * 0.7);
-    tablePath.lineTo(size.width * 0.8, size.height * 0.95);
-    canvas.drawPath(tablePath, paint);
-
-    canvas.drawOval(
-      Rect.fromLTWH(size.width * 0.25, size.height * 0.45, 20, 20),
-      paint,
-    );
-    canvas.drawOval(
-      Rect.fromLTWH(size.width * 0.5, size.height * 0.4, 22, 22),
-      paint,
-    );
-
-    final vaporPaint = Paint()
-      ..color = const Color(0xFF9E9E9E)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final vaporPath = Path();
-    vaporPath.moveTo(size.width * 0.55, size.height * 0.35);
-    vaporPath.quadraticBezierTo(
-      size.width * 0.52,
-      size.height * 0.25,
-      size.width * 0.55,
-      size.height * 0.15,
-    );
-    canvas.drawPath(vaporPath, vaporPaint);
-
-    final plantPaint = Paint()
-      ..color = const Color(0xFF4CAF50)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawLine(
-      Offset(size.width * 0.75, size.height * 0.45),
-      Offset(size.width * 0.75, size.height * 0.25),
-      plantPaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.72, size.height * 0.2),
-      5,
-      plantPaint..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.78, size.height * 0.22),
-      4,
-      plantPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

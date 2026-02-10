@@ -1,21 +1,21 @@
 // lib/services/register_email_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../utils/secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class RegisterEmailService {
-  final apiUrl = dotenv.env['API_URL'];
+  final String? apiUrl = dotenv.env['API_URL'];
 
-  /// Registra un nuevo usuario con correo
-  /// Campos obligatorios: username, correo, contraseña
-  /// telefono es opcional
   Future<Map<String, dynamic>> registerWithEmail({
     required String username,
     required String email,
     required String password,
     String? telefono,
   }) async {
+    if (apiUrl == null) {
+      return {"success": false, "message": "API_URL no configurado en .env"};
+    }
+
     final url = Uri.parse("$apiUrl/api/usuario/registro/correo");
 
     try {
@@ -24,92 +24,55 @@ class RegisterEmailService {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "username": username.trim(),
-          "correo": email.trim().toLowerCase(),
+          "correo": email.trim(),
+          "telefono": telefono?.trim(),
           "contrasenia": password,
-          if (telefono != null && telefono.trim().isNotEmpty)
-            "telefono": telefono.trim(),
         }),
       );
 
-      final responseData = jsonDecode(response.body);
+      // Siempre intentamos parsear la respuesta
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (e) {
+        return {
+          "success": false,
+          "message": "Respuesta inválida del servidor (no es JSON válido)",
+        };
+      }
 
-      if (response.statusCode == 201) {
-        // Éxito - el backend devuelve token y usuario
-        final token = responseData['token'];
-        final usuario = responseData['usuario'];
-
-        if (token == null || usuario == null) {
+      // Caso de éxito: status 201 + status true
+      if (response.statusCode == 201 && data['status'] == true) {
+        // Solo esperamos userId (no token ni usuario completo)
+        if (data['userId'] == null) {
           return {
             "success": false,
-            "message":
-                "Respuesta inválida del servidor (falta token o usuario)",
+            "message": "Respuesta del servidor incompleta: falta userId",
           };
-        }
-
-        // Guardamos todo en secure storage (igual que en login)
-        await SecureStorage.saveToken(token);
-        await SecureStorage.saveUserName(usuario['username'] ?? '');
-        await SecureStorage.saveEmail(usuario['correo'] ?? email);
-        await SecureStorage.saveCodigoUnico(usuario['codigoUnico'] ?? '');
-
-        // loyalty_token puede ser null en teoría, pero tu backend siempre lo genera
-        final loyaltyToken = usuario['loyalty_token']?.toString();
-        if (loyaltyToken != null && loyaltyToken.isNotEmpty) {
-          await SecureStorage.saveLoyaltyToken(loyaltyToken);
         }
 
         return {
           "success": true,
-          "message": responseData['message'] ?? "Cuenta creada con éxito",
-          "token": token,
-          "usuario": usuario,
-        };
-      }
-
-      // ── Errores esperados ────────────────────────────────────────
-      if (response.statusCode == 400) {
-        // Errores de validación (express-validator)
-        final errores =
-            (responseData['errores'] as List?)?.cast<String>() ?? [];
-        return {
-          "success": false,
-          "message": errores.isNotEmpty
-              ? errores.join("\n")
-              : "Datos inválidos",
-          "errors": errores,
-        };
-      }
-
-      if (response.statusCode == 409) {
-        // Conflicto: correo o teléfono ya existe
-        return {
-          "success": false,
           "message":
-              responseData['message'] ??
-              "El correo o teléfono ya está registrado",
+              data['message'] ??
+              'Revisa tu correo para el código de verificación.',
+          "userId": data['userId'].toString(), // aseguramos que sea String
         };
       }
 
-      if (response.statusCode == 500) {
-        return {
-          "success": false,
-          "message": responseData['message'] ?? "Error interno del servidor",
-        };
-      }
-
-      // Cualquier otro código de error
+      // Caso de error del backend
       return {
         "success": false,
         "message":
-            responseData['message'] ??
-            "Error inesperado (${response.statusCode})",
+            data['message'] ?? 'Error al registrar (${response.statusCode})',
+        "errors": data['errores'] ?? null,
       };
     } catch (e) {
+      print('Error en registerWithEmail: $e'); // para debug
       return {
         "success": false,
         "message":
-            "No se pudo conectar con el servidor.\nVerifica tu conexión.",
-        "error": e.toString(),
+            "Error de conexión. Verifica tu internet o intenta más tarde.",
       };
     }
   }

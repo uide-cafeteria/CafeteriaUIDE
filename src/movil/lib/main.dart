@@ -1,4 +1,6 @@
 import 'package:cafeteria_uide/providers/auth_provider.dart';
+import 'package:cafeteria_uide/ui/pages/home_page.dart';
+import 'package:cafeteria_uide/ui/screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +33,15 @@ class CafeteriaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, AuthProvider>(
+        builder: (context, themeProvider, authProvider, child) {
+          if (authProvider.isLoading) {
+            return const MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: Scaffold(body: Center(child: CircularProgressIndicator())),
+            );
+          }
+
           return MaterialApp(
             onGenerateTitle: (context) =>
                 AppLocalizations.of(context)?.appTitle ?? 'Cafeteria UIDE',
@@ -47,6 +56,8 @@ class CafeteriaApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
+
+            home: const HomePage(),
 
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,

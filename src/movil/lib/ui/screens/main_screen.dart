@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../pages/home_page.dart';
 import '../pages/promotions_page.dart';
 import '../pages/historial_page.dart';
@@ -16,21 +18,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  bool _isLoggedIn = false;
+  // bool _isLoggedIn = false; // Ya no usamos estado local
 
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
-  }
-
-  Future<void> _checkLoginStatus() async {
-    final loggedIn = await SecureStorage.isLoggedIn();
-    if (mounted) {
-      setState(() {
-        _isLoggedIn = loggedIn;
-      });
-    }
+    // No necesitamos _checkLoginStatus() aquí porque usaremos el AuthProvider
   }
 
   Widget _buildPage(int index) {
@@ -40,10 +33,14 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return const PromotionsPage();
       case 2:
-        if (_isLoggedIn) return const HistorialPage();
+        if (Provider.of<AuthProvider>(context, listen: false).isAuthenticated) {
+          return const HistorialPage();
+        }
         return const HomePage(); // fallback si no está logueado
       case 3:
-        if (_isLoggedIn) return const CateringPage();
+        if (Provider.of<AuthProvider>(context, listen: false).isAuthenticated) {
+          return const CateringPage();
+        }
         return const HomePage(); // fallback
       default:
         return const HomePage();
@@ -67,7 +64,8 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     // Solo agregar Historial y Catering si está logueado
-    if (_isLoggedIn) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    if (authProvider.isAuthenticated) {
       items.addAll([
         const BottomNavigationBarItem(
           icon: Icon(Icons.history_outlined),

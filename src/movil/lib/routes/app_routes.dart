@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../ui/screens/login_screen.dart';
 import '../ui/screens/main_screen.dart';
 import '../ui/screens/register_screen.dart';
-import '../ui/pages/historial_page.dart'; // Añadido
+import '../ui/pages/historial_page.dart';
 
 class AppRoutes {
   static const initialRoute = '/main';
@@ -22,8 +22,7 @@ class AppRoutes {
       appBar: AppBar(title: const Text('Profile')),
       body: const Center(child: Text('Profile')),
     ),
-    '/promotions': (context) =>
-        const PromotionsPage(), // Si tienes la página real
+    '/promotions': (context) => const PromotionsPage(),
     '/historial': (context) => const HistorialPage(),
   };
 }

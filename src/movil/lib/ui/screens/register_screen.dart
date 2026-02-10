@@ -1,7 +1,9 @@
 // lib/screens/register_screen.dart
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../services/register_email_service.dart';
 import '../../utils/validators.dart';
+import 'verify_otp_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,6 +30,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_passwordCtrl.text != _confirmPasswordCtrl.text) {
+      Fluttertoast.showToast(
+        msg: 'Las contraseñas no coinciden',
+        backgroundColor: Colors.red,
+      );
+      return;
+    }
+
     setState(() => _loading = true);
 
     final result = await _registerService.registerWithEmail(
@@ -42,14 +52,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      // Registro OK → OTP enviado → ir a verificar (NO hay token aún)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['message'] ?? '¡Cuenta creada con éxito!'),
+          content: Text(
+            result['message'] ??
+                'Revisa tu correo institucional para el código',
+          ),
           backgroundColor: Colors.green,
+          duration: const Duration(seconds: 5),
         ),
       );
-      // Como ya guardamos el token → vamos directo a home
-      Navigator.pushReplacementNamed(context, '/home');
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VerifyOtpScreen(
+            userId: result['userId'].toString(),
+            email: _emailCtrl.text.trim(),
+          ),
+        ),
+      );
     } else {
       String errorMsg = result['message'] ?? 'Error al registrar';
       if (result['errors'] != null && (result['errors'] as List).isNotEmpty) {
@@ -104,41 +127,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildLogo() {
     return Column(
       children: [
-        Container(
-          width: 120,
-          height: 80,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5E6D3),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: CustomPaint(painter: CafeteriaLogoPainter()),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'La Cafetería',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'Pacifico',
-            color: Color(0xFF3D3D3D),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFF3D3D3D), width: 1),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Text(
-            'TU LUGAR FAVORITO',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.5,
-              color: Color(0xFF3D3D3D),
-            ),
-          ),
+        // Reemplazo: imagen en lugar de CustomPaint
+        Image.asset(
+          'assets/images/logo_cafeteria.png',
+          width: 250,
+          height: 250,
+          fit: BoxFit.contain,
         ),
       ],
     );
@@ -179,11 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Nombre de usuario',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3D3D3D),
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),
@@ -191,8 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _usernameCtrl,
               textCapitalization: TextCapitalization.none,
               validator: (value) {
-                if (value == null || value.trim().isEmpty)
-                  return 'Ingresa un nombre de usuario';
+                if (value == null || value.trim().isEmpty) return 'Requerido';
                 if (value.trim().length < 3) return 'Mínimo 3 caracteres';
                 return null;
               },
@@ -205,20 +194,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Correo electrónico',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3D3D3D),
-                ),
+                'Correo electrónico UIDE',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              validator: Validators.emailValidator,
-              decoration: _inputDecoration('correo@uide.edu.ec'),
+              validator: (value) {
+                final error = Validators.emailValidator(value);
+                if (error != null) return error;
+                if (!value!.endsWith('@uide.edu.ec') &&
+                    !value.endsWith('@estudiante.uide.edu.ec')) {
+                  return 'Solo correos institucionales de UIDE';
+                }
+                return null;
+              },
+              decoration: _inputDecoration('ejemplo@estudiante.uide.edu.ec'),
             ),
 
             const SizedBox(height: 16),
@@ -228,11 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Teléfono (opcional)',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3D3D3D),
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),
@@ -249,11 +238,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Contraseña',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3D3D3D),
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),
@@ -261,8 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _passwordCtrl,
               obscureText: _obscurePassword,
               validator: (value) {
-                if (value == null || value.isEmpty)
-                  return 'Ingresa una contraseña';
+                if (value == null || value.isEmpty) return 'Requerido';
                 if (value.length < 6) return 'Mínimo 6 caracteres';
                 return null;
               },
@@ -304,11 +288,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Confirmar contraseña',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3D3D3D),
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 8),
@@ -316,10 +296,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _confirmPasswordCtrl,
               obscureText: _obscureConfirmPassword,
               validator: (value) {
-                if (value == null || value.isEmpty)
-                  return 'Confirma tu contraseña';
-                if (value != _passwordCtrl.text)
-                  return 'Las contraseñas no coinciden';
+                if (value == null || value.isEmpty) return 'Requerido';
+                if (value != _passwordCtrl.text) return 'No coinciden';
                 return null;
               },
               decoration: InputDecoration(
@@ -356,9 +334,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // Botón Registrarse
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -448,72 +425,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneCtrl.dispose();
     super.dispose();
   }
-}
-
-// ────────────────────────────────────────────────
-// Reutiliza tu painter del logo (cópialo aquí o impórtalo)
-class CafeteriaLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // ← pega aquí el mismo código que tienes en login_screen.dart
-    final paint = Paint()
-      ..color = const Color(0xFF3D3D3D)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final tablePath = Path();
-    tablePath.moveTo(size.width * 0.2, size.height * 0.7);
-    tablePath.lineTo(size.width * 0.8, size.height * 0.7);
-    tablePath.moveTo(size.width * 0.25, size.height * 0.7);
-    tablePath.lineTo(size.width * 0.2, size.height * 0.95);
-    tablePath.moveTo(size.width * 0.75, size.height * 0.7);
-    tablePath.lineTo(size.width * 0.8, size.height * 0.95);
-    canvas.drawPath(tablePath, paint);
-
-    canvas.drawOval(
-      Rect.fromLTWH(size.width * 0.25, size.height * 0.45, 20, 20),
-      paint,
-    );
-    canvas.drawOval(
-      Rect.fromLTWH(size.width * 0.5, size.height * 0.4, 22, 22),
-      paint,
-    );
-
-    final vaporPaint = Paint()
-      ..color = const Color(0xFF9E9E9E)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final vaporPath = Path();
-    vaporPath.moveTo(size.width * 0.55, size.height * 0.35);
-    vaporPath.quadraticBezierTo(
-      size.width * 0.52,
-      size.height * 0.25,
-      size.width * 0.55,
-      size.height * 0.15,
-    );
-    canvas.drawPath(vaporPath, vaporPaint);
-
-    final plantPaint = Paint()
-      ..color = const Color(0xFF4CAF50)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawLine(
-      Offset(size.width * 0.75, size.height * 0.45),
-      Offset(size.width * 0.75, size.height * 0.25),
-      plantPaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.72, size.height * 0.2),
-      5,
-      plantPaint..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.78, size.height * 0.22),
-      4,
-      plantPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

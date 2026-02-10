@@ -64,7 +64,7 @@ const Usuario = sequelize.define('usuario', {
     allowNull: true,
     validate: {
       len: {
-        args: [60, 255], // Longitud típica para hashes bcrypt
+        args: [60, 255],
         msg: 'El hash de contraseña debe tener entre 60 y 255 caracteres'
       }
     }
@@ -95,10 +95,26 @@ const Usuario = sequelize.define('usuario', {
   activo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
+  },
+  email_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+    comment: 'Indica si el correo ha sido verificado con OTP'
+  },
+  verification_code: {
+    type: DataTypes.STRING(6),
+    allowNull: true,
+    comment: 'Código OTP temporal de 6 dígitos'
+  },
+  verification_code_expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Fecha y hora de expiración del código OTP (10 minutos)'
   }
 }, {
   tableName: 'usuario',
-  timestamps: false, // No agregar createdAt/updatedAt automáticos
+  timestamps: false,
   indexes: [
     {
       unique: false,
@@ -106,6 +122,5 @@ const Usuario = sequelize.define('usuario', {
     }
   ]
 });
-
 
 export default Usuario;

@@ -8,13 +8,14 @@ import bcrypt from 'bcrypt';
 import { validationResult } from 'express-validator';
 import crypto from 'crypto';
 import { Sequelize } from 'sequelize';
+import { GmailEmailService } from '../services/emailService.js'; // ← AJUSTA ESTA RUTA SI ES NECESARIO
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const SALT_ROUNDS = 12;
 
-// INICIALIZA FIREBASE ADMIN
+// Inicializa Firebase Admin
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert(
@@ -23,8 +24,11 @@ if (!admin.apps.length) {
     });
 }
 
+// Instancia del servicio de email (se crea una sola vez)
+const emailService = new GmailEmailService();
+
 const usuarioController = {
-    // Endpoint para registrar un cliente con firebase
+    // Endpoint para registrar un cliente con Firebase (sin cambios)
     registroClienteFirebase: async (req, res) => {
         try {
             const { idToken } = req.body;
@@ -33,13 +37,11 @@ const usuarioController = {
                     status: false,
                     message: 'Token de identificación es requerido'
                 });
-            };
+            }
 
-            // Verificacion por parde de firebase
             const decoded = await admin.auth().verifyIdToken(idToken);
             const { email, name, uid } = decoded;
 
-            // busca para crear en la bd o retornar usuario existente
             let user = await Usuario.findOne({ where: { correo: email } });
             if (!user) {
                 user = await Usuario.create({
@@ -51,18 +53,16 @@ const usuarioController = {
                     rol: 'cliente',
                     password_hash: null,
                     google_id: uid,
-                    loyalty_token: crypto.randomUUID().replaceAll('-', '') //Genera el token para la generación del QR por la promoción de almuerzos
+                    loyalty_token: crypto.randomUUID().replaceAll('-', '')
                 });
             }
 
-            // Genera el JWT
             const token = jwt.sign(
                 { id: user.idUsuario, rol: user.rol },
                 process.env.JWT_SECRET,
                 { expiresIn: '8h' }
             );
 
-            //respuesta
             return res.status(200).json({
                 status: true,
                 message: 'Autenticacion exitosa',
@@ -73,7 +73,7 @@ const usuarioController = {
                     correo: user.correo,
                     telefono: user.telefono,
                     rol: user.rol,
-                    codigoUnico: user.codigoUnico, //El código unico es para diferenciar usuarios
+                    codigoUnico: user.codigoUnico,
                     loyalty_token: user.loyalty_token
                 }
             });
@@ -86,16 +86,9 @@ const usuarioController = {
         }
     },
 
-    //Endpoint para registrar un cliente por OTP telefono
-    registroClienteOTP: async (req, res) => {
-        // TODO: IMPLEMENTACIÓN PENDIENTE CON FIREBASE (OPCIÓN MAS VIABLE Y GRATUITA)
-    },
-
-    //Endpoint para registrar un cliente por correo y contraseña
-    //TODO: Implementar verificación de correo para posibles cuentas faltas mediante codigo de verificación o enlace
+    // Endpoint para registrar cliente por correo + contraseña + OTP
     registroClienteCorreo: async (req, res) => {
         try {
-            // VALIDAR CAMPOS
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
@@ -106,47 +99,163 @@ const usuarioController = {
 
             const { username, correo, telefono, contrasenia } = req.body;
 
-            // Verifica si el correo ya está registrado, y si se proporciona teléfono, verifica también
-            let whereClause = { correo };
+            // Validación estricta de dominio UIDE
+            const lowerCorreo = correo.toLowerCase().trim();
+            const allowedDomains = ['@uide.edu.ec', '@estudiante.uide.edu.ec'];
+            if (!allowedDomains.some(domain => lowerCorreo.endsWith(domain))) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Solo se permiten correos institucionales de UIDE (@uide.edu.ec o @estudiante.uide.edu.ec)'
+                });
+            }
+
+            // Verifica existencia
+            let whereClause = { correo: lowerCorreo };
             if (telefono) {
-                whereClause = { [Sequelize.Op.or]: [{ correo }, { telefono }] };
+                whereClause = { [Sequelize.Op.or]: [{ correo: lowerCorreo }, { telefono }] };
             }
             const existe = await Usuario.findOne({ where: whereClause });
             if (existe) {
                 return res.status(409).json({
                     status: false,
-                    message: existe.correo === correo
+                    message: existe.correo === lowerCorreo
                         ? 'Este correo ya está registrado'
                         : 'Este teléfono ya está registrado'
                 });
             }
 
-            // Hashea la contraseña
+            // Generar OTP
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+
+            // Hashear contraseña
             const hash = await bcrypt.hash(contrasenia, SALT_ROUNDS);
 
-            // Crear el usuario
+            // Crear usuario no verificado
             const user = await Usuario.create({
                 username: username.trim(),
                 nombre: username.trim(),
-                correo: correo.toLowerCase().trim(),
+                correo: lowerCorreo,
                 telefono: telefono || null,
                 codigoUnico: 'U' + Math.random().toString(36).slice(-4).toUpperCase(),
                 rol: 'cliente',
                 password_hash: hash,
-                loyalty_token: crypto.randomUUID().replaceAll('-', '') //Genera el token para la generación del QR por la promoción de almuerzos
+                loyalty_token: crypto.randomUUID().replaceAll('-', ''),
+                email_verified: false,
+                verification_code: otp,
+                verification_code_expires: otpExpires
             });
 
-            // Jwt
+            // Enviar OTP
+            try {
+                const mailOptions = {
+                    to: lowerCorreo,
+                    subject: 'Codigo de verificacion - La Cafeteria UIDE',
+                    html: `
+                        <h2>¡Bienvenido a La Cafetería UIDE!</h2>
+                        <p>Tu código de verificación es:</p>
+                        <h1 style="letter-spacing: 10px; font-size: 40px; text-align: center; background: #f5f5f5; padding: 15px; border-radius: 8px;">
+                            ${otp}
+                        </h1>
+                        <p>Este código es válido por <strong>10 minutos</strong>.</p>
+                        <p>No lo compartas con nadie.</p>
+                        <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                            Si no solicitaste este registro, ignora este mensaje.
+                        </p>
+                    `
+                };
+
+                const emailResult = await emailService.sendEmail(mailOptions);
+
+                if (!emailResult.success) {
+                    await user.destroy();
+                    return res.status(500).json({
+                        status: false,
+                        message: 'Error al enviar el código de verificación. Intenta nuevamente.'
+                    });
+                }
+
+                return res.status(201).json({
+                    status: true,
+                    message: 'Cuenta creada. Revisa tu correo institucional para el código de verificación.',
+                    userId: user.idUsuario
+                });
+
+            } catch (emailError) {
+                console.error('Error enviando OTP:', emailError);
+                await user.destroy();
+                return res.status(500).json({
+                    status: false,
+                    message: 'Error al enviar el código. Intenta más tarde.'
+                });
+            }
+
+        } catch (error) {
+            console.error('Registro error:', error);
+            return res.status(500).json({
+                status: false,
+                message: 'Error del servidor. Intenta más tarde'
+            });
+        }
+    },
+
+    // Nuevo endpoint: Verificar código OTP
+    verificarCodigo: async (req, res) => {
+        try {
+            const { userId, codigo } = req.body;
+
+            if (!userId || !codigo || codigo.length !== 6) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'userId y código de 6 dígitos son requeridos'
+                });
+            }
+
+            const user = await Usuario.findByPk(userId);
+            if (!user) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            if (user.email_verified) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'El correo ya está verificado'
+                });
+            }
+
+            if (!user.verification_code || user.verification_code !== codigo) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Código incorrecto'
+                });
+            }
+
+            if (new Date() > user.verification_code_expires) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'El código ha expirado. Regístrate nuevamente.'
+                });
+            }
+
+            // Verificado exitosamente
+            user.email_verified = true;
+            user.verification_code = null;
+            user.verification_code_expires = null;
+            await user.save();
+
+            // Generar JWT
             const token = jwt.sign(
                 { id: user.idUsuario, rol: user.rol },
                 process.env.JWT_SECRET,
                 { expiresIn: '30d' }
             );
 
-            //Respuesta
-            return res.status(201).json({
+            return res.status(200).json({
                 status: true,
-                message: 'Cuenta creada con éxito',
+                message: 'Correo verificado correctamente. ¡Bienvenido!',
                 token,
                 usuario: {
                     id: user.idUsuario,
@@ -160,23 +269,19 @@ const usuarioController = {
             });
 
         } catch (error) {
-            console.error('Registro error:', error);
+            console.error('Error verificando código:', error);
             return res.status(500).json({
                 status: false,
-                message: 'Error del servidor. Intenta más tarde'
+                message: 'Error del servidor al verificar'
             });
-        };
+        }
     },
 
-    //Endpoint para autenticacion de administrador
+    // Endpoint para autenticación de administrador (sin cambios)
     adminAuth: async (req, res) => {
         try {
-            // Estructura de correo y contraseña
-
-            // Logueo del admin con correo y contraseña
             const { correo, contrasenia } = req.body;
 
-            // Valida campos
             if (!correo || !contrasenia) {
                 return res.status(400).json({
                     status: false,
@@ -184,7 +289,6 @@ const usuarioController = {
                 });
             }
 
-            // Busca la existencia del correo
             const usuario = await Usuario.findOne({
                 where: {
                     correo: correo.toLowerCase().trim(),
@@ -198,7 +302,6 @@ const usuarioController = {
                 });
             }
 
-            // Verifica rol administrador
             if (usuario.rol.toLowerCase() !== 'administrador') {
                 return res.status(403).json({
                     status: false,
@@ -206,7 +309,6 @@ const usuarioController = {
                 });
             }
 
-            // verifica contraseña
             const valido = await bcrypt.compare(contrasenia, usuario.password_hash);
             if (!valido) {
                 return res.status(401).json({
@@ -215,14 +317,12 @@ const usuarioController = {
                 });
             }
 
-            // Genera JWT (8h)
             const token = jwt.sign(
                 { id: usuario.idUsuario, rol: usuario.rol },
                 process.env.JWT_SECRET,
                 { expiresIn: '8h' }
             );
 
-            //Respuesta
             return res.status(200).json({
                 status: true,
                 message: 'Autenticación exitosa',
@@ -240,10 +340,10 @@ const usuarioController = {
                 status: false,
                 message: 'Error interno del servidor'
             });
-        };
+        }
     },
 
-    //Endpoint para cerrar sesion administrador
+    // Cerrar sesión administrador (sin cambios)
     logoutAdmin: async (req, res) => {
         try {
             res.clearCookie('token');
@@ -260,15 +360,11 @@ const usuarioController = {
         }
     },
 
-    //Endpoint para login cliente
+    // Login cliente (sin cambios)
     userAuth: async (req, res) => {
         try {
-            // Estructura de correo y contraseña
-
-            // Logueo del cliente con correo y contraseña
             const { correo, contrasenia } = req.body;
 
-            // Valida campos
             if (!correo || !contrasenia) {
                 return res.status(400).json({
                     status: false,
@@ -276,7 +372,6 @@ const usuarioController = {
                 });
             }
 
-            // Busca la existencia del correo
             const usuario = await Usuario.findOne({
                 where: {
                     correo: correo.toLowerCase().trim(),
@@ -290,7 +385,6 @@ const usuarioController = {
                 });
             }
 
-            // Verifica rol cliente
             if (usuario.rol.toLowerCase() !== 'cliente') {
                 return res.status(403).json({
                     status: false,
@@ -298,7 +392,6 @@ const usuarioController = {
                 });
             }
 
-            // verifica contraseña
             const valido = await bcrypt.compare(contrasenia, usuario.password_hash);
             if (!valido) {
                 return res.status(401).json({
@@ -307,14 +400,12 @@ const usuarioController = {
                 });
             }
 
-            // Genera JWT (8h)
             const token = jwt.sign(
                 { id: usuario.idUsuario, rol: usuario.rol },
                 process.env.JWT_SECRET,
                 { expiresIn: '8h' }
             );
 
-            //Respuesta
             return res.status(200).json({
                 status: true,
                 message: 'Autenticación exitosa',
@@ -334,8 +425,8 @@ const usuarioController = {
                 status: false,
                 message: 'Error interno del servidor'
             });
-        };
-    }
+        }
+    },
 };
 
 export default usuarioController;
