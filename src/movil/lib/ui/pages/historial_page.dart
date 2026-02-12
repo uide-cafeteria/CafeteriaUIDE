@@ -481,7 +481,7 @@ class _HistorialPageState extends State<HistorialPage>
                   : QrImageView(
                       data: _loyaltyToken.isEmpty
                           ? "cargando..."
-                          : "http://172.16.83.194:3000/scan-confirm?loyalty_token=$_loyaltyToken",
+                          : "https://cafeteria.uidehub.tech/scan-confirm?loyalty_token=$_loyaltyToken",
                       version: QrVersions.auto,
                       size: qrSize,
                       gapless: false,

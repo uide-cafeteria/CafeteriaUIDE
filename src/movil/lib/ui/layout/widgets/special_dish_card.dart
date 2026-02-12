@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../models/menu_del_dia_producto.dart'; // ← tu modelo
-
-// SpecialDishCard.dart (versión simplificada, sin título interno)
+import '../../../models/menu_del_dia_producto.dart';
 
 class SpecialDishCard extends StatelessWidget {
   const SpecialDishCard({
@@ -18,10 +16,139 @@ class SpecialDishCard extends StatelessWidget {
   final VoidCallback? onFavoritePressed;
   final VoidCallback? onTap;
 
+  // ← Nueva función para mostrar el modal
+  void _showDescriptionModal(BuildContext context) {
+    final producto = item.producto;
+    final String descripcionCompleta = producto.descripcion?.isNotEmpty == true
+        ? producto.descripcion!
+        : "Plato delicioso preparado con los mejores ingredientes del día. "
+              "Incluye acompañamientos frescos y salsas caseras.";
+
+    final String nombre = producto.nombre.isNotEmpty
+        ? producto.nombre
+        : "Almuerzo Ejecutivo";
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // permite que ocupe más espacio
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) {
+          return Container(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+            child: ListView(
+              controller: scrollController,
+              children: [
+                // Barra superior decorativa
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                ),
+
+                // Título
+                Text(
+                  nombre,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Rating
+                Row(
+                  children: [
+                    ...List.generate(5, (i) {
+                      final val = i + 1;
+                      if (val <= 4) {
+                        return const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 20,
+                        );
+                      } else if (val - 0.5 <= 4.2) {
+                        return const Icon(
+                          Icons.star_half,
+                          color: Colors.amber,
+                          size: 20,
+                        );
+                      }
+                      return const Icon(
+                        Icons.star_border,
+                        color: Colors.grey,
+                        size: 20,
+                      );
+                    }),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "4.2 • Muy bueno",
+                      style: TextStyle(color: Colors.grey, fontSize: 15),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Imagen (opcional, más grande)
+                if (producto.imagen != null && producto.imagen!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: CachedNetworkImage(
+                      imageUrl: producto.imagen!,
+                      height: 220,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                const SizedBox(height: 24),
+
+                // Descripción
+                Text(
+                  "Descripción",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  descripcionCompleta,
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+
+                const SizedBox(height: 25),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final producto = item.producto;
-    final String descripcion = producto.descripcion?.isNotEmpty == true
+    final String descripcionCorta = producto.descripcion?.isNotEmpty == true
         ? producto.descripcion!
         : "Pollo a la plancha marinado en finas hierbas, "
               "acompañado de quinoa orgánica, aguacate y...";
@@ -29,12 +156,9 @@ class SpecialDishCard extends StatelessWidget {
     final String nombre = producto.nombre.isNotEmpty
         ? producto.nombre
         : "Almuerzo Ejecutivo";
-
     final String precioStr = "\$${item.precioFinal.toStringAsFixed(2)}";
     final String? imagenUrl = producto.imagen;
-
-    // Rating (puedes venir del modelo después)
-    const double rating = 4.2; // ← reemplaza por item.rating cuando exista
+    const double rating = 4.2;
 
     return GestureDetector(
       onTap: onTap,
@@ -42,33 +166,26 @@ class SpecialDishCard extends StatelessWidget {
         elevation: 5,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.hardEdge,
-        // Más ancha: margen horizontal reducido
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Imagen + precio badge
+            // Imagen + precio (sin cambios)
             Stack(
               children: [
                 AspectRatio(
-                  aspectRatio: 16 / 9, // más ancho visualmente
+                  aspectRatio: 16 / 9,
                   child: CachedNetworkImage(
                     imageUrl: imagenUrl ?? '',
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.broken_image_outlined,
-                        size: 70,
-                        color: Colors.grey,
-                      ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.broken_image_outlined,
+                      size: 70,
+                      color: Colors.grey,
                     ),
                   ),
                 ),
@@ -109,9 +226,7 @@ class SpecialDishCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nombre + estrellas en la misma fila
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Text(
@@ -166,7 +281,7 @@ class SpecialDishCard extends StatelessWidget {
                   const SizedBox(height: 10),
 
                   Text(
-                    descripcion,
+                    descripcionCorta,
                     style: TextStyle(
                       fontSize: 15,
                       height: 1.4,
@@ -182,7 +297,9 @@ class SpecialDishCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: onOrderPressed,
+                          onPressed: () => _showDescriptionModal(
+                            context,
+                          ), // ← ¡Aquí se abre el modal!
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange.shade700,
                             foregroundColor: Colors.white,
@@ -201,15 +318,6 @@ class SpecialDishCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: onFavoritePressed,
-                        icon: const Icon(Icons.favorite_border, size: 26),
-                        color: Colors.grey.shade700,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.grey.shade100,
-                          padding: const EdgeInsets.all(12),
-                        ),
-                      ),
                     ],
                   ),
                 ],

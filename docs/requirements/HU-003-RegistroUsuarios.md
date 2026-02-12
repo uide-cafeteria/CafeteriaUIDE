@@ -5,7 +5,7 @@ El sistema deberá permitir la autenticación de usuarios mediante, Google, núm
 Usuario de la Aplicación
 
 ### Quiero:
-Acceder al sistema utilizando mi método de autenticación preferido (correo, Google o número de teléfono).
+Acceder al sistema utilizando mi método de autenticación por correo institucional.
 
 ### Para:
 Tener una experiencia de acceso rápida, segura y adecuada a mis necesidades.
@@ -23,17 +23,12 @@ Tener una experiencia de acceso rápida, segura y adecuada a mis necesidades.
   **Cuando** intenta iniciar sesión  
   **Entonces** el sistema deberá mostrar un mensaje indicando que las credenciales son inválidas.
 
-### 2. Autenticación mediante Google (Firebase)
-- **Dado que** el usuario selecciona el método "Iniciar sesión con Google"  
-  **Cuando** completa el proceso de autenticación de Google mediante Firebase  
-  **Entonces** el sistema deberá permitir el acceso y registrar/actualizar su información básica (nombre, correo, foto).
+### 2. Autenticación mediante Correo Institucional
+- **Dado que** el usuario selecciona el método "Iniciar sesión con correo Institucional"  
+  **Cuando** completa el proceso de autenticación de correo institucional mediante validación OTP  
+  **Entonces** el sistema deberá permitir el acceso y registrar su información.
 
-### 3. Autenticación mediante número de teléfono
-- **Dado que** el usuario elige iniciar sesión con número de teléfono  
-  **Cuando** ingresa su número y recibe un código de verificación  
-  **Entonces** deberá poder autenticarse correctamente al ingresar el código validado por Firebase.
-
-### 4. Manejo de errores de autenticación
+### 3. Manejo de errores de autenticación
 - **Dado que** ocurre un error (código inválido, correo ya usado, usuario bloqueado o red caída)  
   **Cuando** el usuario intenta autenticarse  
   **Entonces** el sistema deberá mostrar mensajes claros y específicos del problema.
@@ -46,7 +41,8 @@ Tener una experiencia de acceso rápida, segura y adecuada a mis necesidades.
 - Validar formato de correo.
 - Almacenar contraseñas con hash seguro (bcrypt).
 - Retornar un token de sesión o JWT.
-- Permitir correos institucionales (ej. `*@institucion.edu`).
+- Enviar codigo OTP al correo institucional.
+- Permitir correos institucionales (ej. `*@uide.edu`).
 
 ### Autenticación con Google (Firebase Authentication)
 - Usar Firebase Auth con proveedor Google.
@@ -57,12 +53,6 @@ Tener una experiencia de acceso rápida, segura y adecuada a mis necesidades.
   - `photoURL`
 - Guardar o actualizar usuario en tabla local si no existe.
 - Manejar errores de Google: cancelación, permisos, usuario no válido.
-
-### Autenticación con número de teléfono
-- Usar Firebase Phone Auth.
-- Enviar OTP al número ingresado.
-- Validar OTP mediante Firebase.
-- Guardar número en la base de datos local si no existe.
 
 ### Gestión de sesiones
 - El backend deberá generar y validar JWT o tokens de sesión.

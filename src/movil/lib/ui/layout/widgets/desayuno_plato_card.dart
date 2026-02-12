@@ -120,7 +120,7 @@ class DesayunoPlatoCard extends StatelessWidget {
                       producto.descripcion ??
                           'Carne de res 150g, queso cheddar, lechuga, tomate y papas fritas...',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 10,
                         color: Colors.grey[700],
                         height: 1.3,
                       ),
