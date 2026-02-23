@@ -17,6 +17,7 @@ import '../../models/menu_del_dia.dart';
 import '../../models/menu_del_dia_producto.dart';
 import '../../services/menu_services.dart';
 import '../../services/horario_atencion_service.dart';
+import '../../services/analytics_service.dart';
 import '../layout/widgets/special_dish_card.dart';
 import '../layout/widgets/otros_productos_card.dart';
 import '../layout/widgets/desayuno_plato_card.dart';
@@ -49,16 +50,32 @@ class _HomePageState extends State<HomePage> {
   String? _progresoError;
 
   String _userName = "Usuario";
-  bool _isLoggedIn = false; // ← Nueva variable para controlar login
+  bool _isLoggedIn = false;
+
+  // Analytics: medir tiempo de sesión en HomePage
+  DateTime? _sessionStart;
 
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // Verificar si está logueado
+    _sessionStart = DateTime.now();
+    _checkLoginStatus();
     _loadUserName();
     _loadMenu();
     _loadHorarios();
     _loadProgresoLealtad();
+    // Evento 1: menú visualizado
+    AnalyticsService().logMenuViewed();
+  }
+
+  @override
+  void dispose() {
+    // Evento 7: tiempo de sesión en home
+    if (_sessionStart != null) {
+      final segundos = DateTime.now().difference(_sessionStart!).inSeconds;
+      AnalyticsService().logSessionTimeOnHome(segundos: segundos);
+    }
+    super.dispose();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -411,7 +428,10 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            SpecialDishCard(item: especialItem),
+                            // RepaintBoundary: aisla el repintado del plato especial
+                            RepaintBoundary(
+                              child: SpecialDishCard(item: especialItem),
+                            ),
                             const SizedBox(height: 28),
                           ],
 
@@ -432,7 +452,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(height: 12),
 
-                          const PromocionesHomeWidget(),
+                          // RepaintBoundary: aisla repintado del widget de promociones
+                          const RepaintBoundary(
+                            child: PromocionesHomeWidget(),
+                          ),
 
                           const SizedBox(height: 40),
                         ],

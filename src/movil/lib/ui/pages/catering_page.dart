@@ -3,6 +3,7 @@ import 'package:cafeteria_uide/config/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/catering_service.dart';
+import '../../services/analytics_service.dart';
 
 class CateringPage extends StatefulWidget {
   const CateringPage({super.key});
@@ -36,6 +37,13 @@ class _CateringPageState extends State<CateringPage> {
   bool _isLoading = false;
   String? _successMessage;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Evento 3: Formulario de catering iniciado
+    AnalyticsService().logCateringFormStarted();
+  }
 
   @override
   void dispose() {
@@ -144,6 +152,11 @@ class _CateringPageState extends State<CateringPage> {
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
+      // Evento 4: Formulario de catering enviado con éxito
+      AnalyticsService().logCateringFormSubmitted(
+        tipoEvento: _tipoEventoSeleccionado ?? 'desconocido',
+        cantidadPersonas: int.tryParse(_cantidadController.text.trim()),
+      );
       setState(() => _successMessage = result['message']);
       _formKey.currentState!.reset();
       _nombreController.clear();
