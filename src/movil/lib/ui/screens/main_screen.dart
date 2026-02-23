@@ -1,3 +1,5 @@
+// lib/ui/screens/main_screen.dart
+// Actualizado: integra ConnectivityBanner como wrapper de nivel superior
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -8,6 +10,7 @@ import '../../config/app_theme.dart';
 import '../pages/catering_page.dart';
 import '../pages/profile_page.dart';
 import '../../utils/secure_storage.dart';
+import '../layout/widgets/connectivity_banner.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,12 +21,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  // bool _isLoggedIn = false; // Ya no usamos estado local
+
+  // Clave global para forzar recarga de la página activa al reconectar
+  final GlobalKey<State> _pageKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    // No necesitamos _checkLoginStatus() aquí porque usaremos el AuthProvider
   }
 
   Widget _buildPage(int index) {
@@ -36,20 +40,30 @@ class _MainScreenState extends State<MainScreen> {
         if (Provider.of<AuthProvider>(context, listen: false).isAuthenticated) {
           return const HistorialPage();
         }
-        return const HomePage(); // fallback si no está logueado
+        return const HomePage();
       case 3:
         if (Provider.of<AuthProvider>(context, listen: false).isAuthenticated) {
           return const CateringPage();
         }
-        return const HomePage(); // fallback
+        return const HomePage();
       default:
         return const HomePage();
     }
   }
 
+  // Callback de reconexión automática: fuerza rebuild de la página actual
+  void _handleReconnect() {
+    if (mounted) {
+      setState(() {
+        // Forzamos un rebuild; las páginas que usan RefreshIndicator recargarán
+        // sus datos en initState. Para reconexión profunda, ir a HomePage recarga
+        // automáticamente al navegar.
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Ítems dinámicos según si está logueado
     final List<BottomNavigationBarItem> items = [
       const BottomNavigationBarItem(
         icon: Icon(Icons.home_outlined),
@@ -63,7 +77,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
     ];
 
-    // Solo agregar Historial y Catering si está logueado
     final authProvider = Provider.of<AuthProvider>(context);
     if (authProvider.isAuthenticated) {
       items.addAll([
@@ -80,28 +93,28 @@ class _MainScreenState extends State<MainScreen> {
       ]);
     }
 
-    return Scaffold(
-      body: SafeArea(bottom: false, child: _buildPage(_currentIndex)),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex.clamp(
-          0,
-          items.length - 1,
-        ), // evita índices inválidos
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppTheme.cardColor,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: Colors.black54,
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
-        iconSize: 26,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-        elevation: 8,
-        items: items,
+    return ConnectivityBanner(
+      onReconnect: _handleReconnect,
+      child: Scaffold(
+        body: SafeArea(bottom: false, child: _buildPage(_currentIndex)),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex.clamp(0, items.length - 1),
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: AppTheme.cardColor,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: Colors.black54,
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
+          iconSize: 26,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+          elevation: 8,
+          items: items,
+        ),
       ),
     );
   }
