@@ -13,11 +13,9 @@ import 'package:cafeteria_uide/providers/auth_provider.dart';
 import 'package:cafeteria_uide/services/analytics_service.dart';
 import 'package:cafeteria_uide/services/error_reporter.dart';
 import 'package:cafeteria_uide/ui/pages/home_page.dart';
-import 'package:cafeteria_uide/ui/screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
@@ -29,18 +27,10 @@ import 'providers/theme_provider.dart';
 import 'routes/app_routes.dart';
 
 Future<void> main() async {
-  // ── 1. Inicializar bindings de Flutter ──────────────────
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // ── 2. Inicializar manejador global de errores ──────────
-  ErrorReporter().initialize();
-
-  // ── 3. ErrorWidget.builder: render elegante en producción
+  // ── 1. ErrorWidget.builder: render elegante en producción
+  //    (se puede configurar antes de cualquier init)
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    // En DEBUG mostramos el widget rojo estándar
     if (kDebugMode) return ErrorWidget(details.exception);
-
-    // En PRODUCCIÓN: pantalla de error amigable
     return Material(
       child: Container(
         color: const Color(0xFFFAFAFA),
@@ -65,9 +55,16 @@ Future<void> main() async {
     );
   };
 
-  // ── 4. runZonedGuarded: capturar errores async de zona ──
+  // ── 2. runZonedGuarded: TODOS los inits deben estar aquí
+  //    para que ensureInitialized y runApp corran en la misma zona
   await runZonedGuarded(
     () async {
+      // ── 3. Inicializar bindings DENTRO de la zona ────────
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // ── 4. Inicializar manejador global de errores ───────
+      ErrorReporter().initialize();
+
       await initializeDateFormatting('es', null);
       await dotenv.load(fileName: ".env");
 
@@ -77,13 +74,11 @@ Future<void> main() async {
       );
 
       // ── 6. Inicializar servicio de Analytics ─────────────
-      //    (El singleton queda disponible en toda la app)
       AnalyticsService();
 
       runApp(const CafeteriaApp());
     },
     (error, stack) {
-      // Captura errores async no manejados
       ErrorReporter().reportZoneError(error, stack);
     },
   );
@@ -123,9 +118,7 @@ class CafeteriaApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             // Pasar observer de Analytics a Navigator
-            navigatorObservers: [
-              AnalyticsService().observer,
-            ],
+            navigatorObservers: [AnalyticsService().observer],
             home: const HomePage(),
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,

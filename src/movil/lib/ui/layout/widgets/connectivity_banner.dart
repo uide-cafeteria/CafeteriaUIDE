@@ -1,13 +1,12 @@
 // lib/ui/layout/widgets/connectivity_banner.dart
 //
-// Banner de conectividad con detección de red en tiempo real.
-// Features:
-//   - Banner rojo animado cuando no hay internet
-//   - Banner verde al recuperar conexión (se oculta solo)
-//   - Reconexión automática via callback
-//   - Loguea evento 'connectivity_restored' en Analytics
+// Banner de conectividad con detección REAL de internet.
+// - Usa connectivity_plus para detectar cambios de interfaz
+// - Valida con InternetAddress.lookup para confirmar internet real
+// - Funciona correctamente en emulador y dispositivo físico
 
 import 'dart:async';
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import '../../../services/analytics_service.dart';
@@ -16,11 +15,7 @@ class ConnectivityBanner extends StatefulWidget {
   final Widget child;
   final VoidCallback? onReconnect;
 
-  const ConnectivityBanner({
-    super.key,
-    required this.child,
-    this.onReconnect,
-  });
+  const ConnectivityBanner({super.key, required this.child, this.onReconnect});
 
   @override
   State<ConnectivityBanner> createState() => _ConnectivityBannerState();
@@ -31,6 +26,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
   bool _isOffline = false;
   bool _showRestoredBanner = false;
   DateTime? _disconnectedAt;
+  Timer? _pollingTimer;
 
   late final StreamSubscription<List<ConnectivityResult>> _subscription;
   late final AnimationController _animationController;
@@ -44,47 +40,59 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
       vsync: this,
       duration: const Duration(milliseconds: 350),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
-    // Escuchar cambios de conectividad
-    _subscription = Connectivity()
-        .onConnectivityChanged
-        .listen(_handleConnectivityChange);
-
-    // Verificar estado inicial
-    _checkInitial();
-  }
-
-  Future<void> _checkInitial() async {
-    final result = await Connectivity().checkConnectivity();
-    _handleConnectivityChange(result);
-  }
-
-  void _handleConnectivityChange(List<ConnectivityResult> results) {
-    final hasConnection = results.any(
-      (r) => r != ConnectivityResult.none,
+    // Escuchar cambios de interfaz de red
+    _subscription = Connectivity().onConnectivityChanged.listen(
+      _onConnectivityChanged,
     );
 
-    if (!hasConnection && !_isOffline) {
-      // Acaba de perder conexión
+    // Verificar estado inicial
+    _checkRealInternet();
+
+    // Polling cada 3 segundos para detectar cambios en emulador
+    _pollingTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _checkRealInternet(),
+    );
+  }
+
+  // Verifica si hay internet REAL (no solo interfaz de red)
+  Future<bool> _hasRealInternet() async {
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException {
+      return false;
+    } on TimeoutException {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _checkRealInternet() async {
+    final hasInternet = await _hasRealInternet();
+
+    if (!hasInternet && !_isOffline) {
+      // Perdió internet
       _disconnectedAt = DateTime.now();
       if (mounted) {
         setState(() => _isOffline = true);
         _animationController.forward();
+        debugPrint('[ConnectivityBanner] 🔴 Sin conexión detectada');
       }
-    } else if (hasConnection && _isOffline) {
-      // Recuperó conexión
+    } else if (hasInternet && _isOffline) {
+      // Recuperó internet
       final secondsOffline = _disconnectedAt != null
           ? DateTime.now().difference(_disconnectedAt!).inSeconds
           : 0;
 
-      // Loguear evento de analítica
       AnalyticsService().logConnectivityRestored(
         segundosDesconectado: secondsOffline,
       );
@@ -95,11 +103,10 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
           _showRestoredBanner = true;
         });
         _animationController.reverse();
-
-        // Reconexión automática
         widget.onReconnect?.call();
 
-        // Ocultar banner verde tras 2.5 segundos
+        debugPrint('[ConnectivityBanner] 🟢 Conexión restaurada');
+
         Future.delayed(const Duration(milliseconds: 2500), () {
           if (mounted) setState(() => _showRestoredBanner = false);
         });
@@ -107,9 +114,15 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
     }
   }
 
+  void _onConnectivityChanged(List<ConnectivityResult> results) {
+    // Al cambiar la interfaz, verificamos internet real inmediatamente
+    _checkRealInternet();
+  }
+
   @override
   void dispose() {
     _subscription.cancel();
+    _pollingTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }
@@ -120,7 +133,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
       children: [
         widget.child,
 
-        // Banner offline (rojo) - desliza desde arriba
+        // Banner offline (rojo)
         if (_isOffline)
           Positioned(
             top: 0,
@@ -164,7 +177,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
             ),
           ),
 
-        // Banner conectado (verde) - aparece brevemente
+        // Banner conectado (verde)
         if (_showRestoredBanner && !_isOffline)
           Positioned(
             top: 0,
@@ -185,11 +198,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
                     bottom: false,
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.wifi_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                        Icon(Icons.wifi_rounded, color: Colors.white, size: 20),
                         SizedBox(width: 10),
                         Text(
                           'Conexión restaurada ✓',
