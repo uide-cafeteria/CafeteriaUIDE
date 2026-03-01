@@ -20,9 +20,22 @@ import 'package:flutter/foundation.dart';
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
-  AnalyticsService._internal();
+  AnalyticsService._internal() {
+    _init();
+  }
 
   final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+
+  Future<void> _init() async {
+    // Asegurar que la colección de analytics está activa
+    await _analytics.setAnalyticsCollectionEnabled(true);
+    if (kDebugMode) {
+      // En debug: envía eventos inmediatamente (visible en DebugView)
+      debugPrint(
+        '[Analytics] ✅ Inicializado en modo DEBUG – eventos en tiempo real',
+      );
+    }
+  }
 
   FirebaseAnalyticsObserver get observer =>
       FirebaseAnalyticsObserver(analytics: _analytics);
@@ -36,7 +49,8 @@ class AnalyticsService {
       await _analytics.logEvent(
         name: 'menu_viewed',
         parameters: {
-          'fecha_menu': fechaMenu ?? DateTime.now().toIso8601String().substring(0, 10),
+          'fecha_menu':
+              fechaMenu ?? DateTime.now().toIso8601String().substring(0, 10),
           'timestamp': DateTime.now().millisecondsSinceEpoch,
         },
       );
@@ -79,9 +93,7 @@ class AnalyticsService {
     try {
       await _analytics.logEvent(
         name: 'catering_form_started',
-        parameters: {
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        },
+        parameters: {'timestamp': DateTime.now().millisecondsSinceEpoch},
       );
       debugPrint('[Analytics] ✅ catering_form_started logged');
     } catch (e) {

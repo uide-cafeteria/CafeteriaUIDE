@@ -6,7 +6,6 @@
 //   - runZonedGuarded (errores async no manejados)
 // =====================================================
 
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 class ErrorReporter {
@@ -14,17 +13,12 @@ class ErrorReporter {
   factory ErrorReporter() => _instance;
   ErrorReporter._internal();
 
-  // Referencia al manejador original de Flutter para no perder su lógica
-  FlutterExceptionHandler? _originalFlutterErrorHandler;
-
   // Contador de errores en sesión (para telemetría)
   int _errorCount = 0;
   int get errorCount => _errorCount;
 
   // Inicializar manejadores globales
   void initialize() {
-    _originalFlutterErrorHandler = FlutterError.onError;
-
     // Captura errores de renderizado de Flutter (widgets, layout, etc.)
     FlutterError.onError = (FlutterErrorDetails details) {
       _reportError(

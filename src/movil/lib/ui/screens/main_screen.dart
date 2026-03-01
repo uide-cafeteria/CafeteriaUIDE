@@ -8,8 +8,6 @@ import '../pages/promotions_page.dart';
 import '../pages/historial_page.dart';
 import '../../config/app_theme.dart';
 import '../pages/catering_page.dart';
-import '../pages/profile_page.dart';
-import '../../utils/secure_storage.dart';
 import '../layout/widgets/connectivity_banner.dart';
 
 class MainScreen extends StatefulWidget {
@@ -21,9 +19,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-
-  // Clave global para forzar recarga de la página activa al reconectar
-  final GlobalKey<State> _pageKey = GlobalKey();
 
   @override
   void initState() {
